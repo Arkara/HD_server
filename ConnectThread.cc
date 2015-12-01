@@ -4,18 +4,14 @@
 
 
 
-//ConnectionListenerThread
-//listen on port for connections
-//for each connection
-// create socket
-// pass to thread with least sockets
 void ConnectionListener(int tid) {
     std::cout << "XXXX" << std::endl;
 }
 
-ConnectThread::ConnectThread()
+ConnectThread::ConnectThread(  SocketThreads* pSocketHandlerThreads )
 {
-     ConnectionListenerThreads = std::thread( ConnectionListener, 0 );
+     SocketHandlerThreads=pSocketHandlerThreads;
+     ConnectionListenerThreads = std::thread(  ConnectionListener, 0 );
 }
 
 ConnectThread::~ConnectThread()

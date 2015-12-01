@@ -1,4 +1,3 @@
-
 // standard libraries
 #include <iostream>
 #include <stdio.h>
@@ -27,8 +26,8 @@ int main()
         GetNumberOfThreadsSupported()
     );
 
-    SocketThreads SocketHandlerThreads;
-    ConnectThread ConnectListenerThread;
+    SocketThreads* SocketHandlerThreads = new SocketThreads();
+    ConnectThread ConnectListenerThread(SocketHandlerThreads);
 
     while ( !EndProgram )
     {

@@ -1,4 +1,4 @@
-#pragma once
+#ifndef _HD_ConnectThread
 
 #include <thread>
 #include <list>
@@ -8,22 +8,27 @@
 #include <mutex>
 
 
-//ConnectionListenerThread
-//listen on port for connections
-//for each connection
-// create socket
-// pass to thread with least sockets
+
+
+#include "SocketThread.h"
+
+
+
+
+
 void ConnectionListener(int tid);
 
 class ConnectThread
 {
 private :
     std::thread ConnectionListenerThreads;
+    SocketThreads* SocketHandlerThreads;
 
 public :
-    ConnectThread();
+    ConnectThread( SocketThreads* SocketHandlerThreads );
     ~ConnectThread();
 };
 
 
-
+#define _HD_ConnectThread
+#endif
