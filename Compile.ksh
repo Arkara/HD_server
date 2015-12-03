@@ -1,1 +1,1 @@
-g++ HarikanDawnServer.cc SocketThread.cc ConnectThread.cc Utility.cc -o HarikanDawnServer -pthread -std=c++11
+g++ HarikanDawnServer.cc SocketThreadLeader.cc SocketThreadList.cc SocketEntity.cc ConnectThread.cc Utility.cc -o HarikanDawnServer -pthread -std=c++11

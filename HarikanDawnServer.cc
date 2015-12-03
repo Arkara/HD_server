@@ -7,13 +7,18 @@
 
 
 //Harikan Dawn custom libraries
-#include "SocketThread.h"
+#include "SocketThreadLeader.h"
 #include "ConnectThread.h"
 #include "Utility.h"
 
 
+SocketThreadLeader SocketLeader;
+ConnectThread ConnectListenerThread;
 
-
+void ApplyConfiguration()
+{
+    //eventually override with values read from a config file 
+}
 
 int main()
 {
@@ -21,16 +26,13 @@ int main()
     char   InputBuffer[1024];
 
 
-    printf( "\nSystem Information:\nNumber of Cores : %i\nNumber of Threads Supported : %u\n\n\n",
-        GetNumberOfCPUCores(),
-        GetNumberOfThreadsSupported()
-    );
+printf( "Harikan Dawn Server rev 0.0.1\n" );
 
-    SocketThreads* SocketHandlerThreads = new SocketThreads();
-    ConnectThread ConnectListenerThread(SocketHandlerThreads);
+    ApplyConfiguration();
 
     while ( !EndProgram )
     {
+        printf ( " HD: " );
         scanf( "%1023s", InputBuffer );
         if( strstr(InputBuffer,"quit")==InputBuffer )
         {

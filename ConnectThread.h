@@ -10,7 +10,7 @@
 
 
 
-#include "SocketThread.h"
+#include "SocketThreadLeader.h"
 
 
 
@@ -28,13 +28,12 @@
 class ConnectThread
 {
 private :
-    std::thread     ConnectionListenerThread;
-    SocketThreads*  SocketHandlerThreads;
-    int             status;
-    struct addrinfo host_info;
-    struct addrinfo *host_info_list = NULL;
-    int             SocketDescriptor;
-    int             ConnectionPollingInterval = 100;
+    std::thread              ConnectionListenerThread;
+    int                      status;
+    struct addrinfo          host_info;
+    struct addrinfo          *host_info_list = NULL;
+    int                      SocketDescriptor;
+    int                      ConnectionPollingDelay = 100;
 
     void InitHostInfo(const char *TargetHostURL);
     void InitReceiveSocket();
@@ -46,7 +45,8 @@ private :
     std::atomic<int> SocketState;
 
 public :
-    ConnectThread( SocketThreads* SocketHandlerThreads );
+   
+    ConnectThread();
     ~ConnectThread();
     void ConnectionListener();
 

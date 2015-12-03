@@ -105,7 +105,7 @@ printf( "ConnectThread::BindSocket\n" );
 
 void ConnectThread::ReceiveConnectionAttempts()
 {
-printf( "ConnectThread::ReceiveConnectionAttempts\n" );
+//printf( "ConnectThread::ReceiveConnectionAttempts\n" );  //this commented out so avoid continuous prints to console.
     status =  listen(SocketDescriptor, 256 );
     if (status == -1)
     {
@@ -137,6 +137,7 @@ printf( "ConnectThread::ReceiveConnectionAttempts\n" );
         else
         {
             printf("Connection accepted. Using new SocketDescriptor : %i\n", new_sd);
+            SocketLeader.AddSocketEntityToQueue(SocketEntity(new_sd));
         }
     }
 }
@@ -172,16 +173,15 @@ printf( "ConnectThread::ConnectionListener\n");
             BindSocket();
         }
 
-       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingInterval));
+       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
     }
     
 
 }
 
-ConnectThread::ConnectThread(  SocketThreads* pSocketHandlerThreads )
+ConnectThread::ConnectThread()
 {
     SocketState = Connect_Thread_GETADDRINFO_INIT;
-    SocketHandlerThreads=pSocketHandlerThreads;
     ConnectionListenerThread = std::thread([=] { ConnectionListener(); });
 
 }
@@ -197,5 +197,5 @@ printf( "ConnectThread::~ConnectThread begins\n");
         freeaddrinfo(host_info_list);
     }
     ConnectionListenerThread.join();
-printf( "ConnectThread::ConnectThread completed\n");
+printf( "ConnectThread::~ConnectThread completed\n");
 }
