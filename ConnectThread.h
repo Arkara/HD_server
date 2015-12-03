@@ -5,7 +5,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <mutex>
+#include <atomic>
 
 
 
@@ -17,6 +17,14 @@
 
 
 
+#define Connect_Thread_TERMINATE          0
+#define Connect_Thread_GETADDRINFO_INIT   1
+#define Connect_Thread_SOCKET_INIT        2
+#define Connect_Thread_PORT_INIT          3
+#define Connect_Thread_BIND_INIT          4
+#define Connect_Thread_LISTENING          5
+#define Connect_Thread_IOCTL_INIT         6
+
 class ConnectThread
 {
 private :
@@ -24,23 +32,18 @@ private :
     SocketThreads*  SocketHandlerThreads;
     int             status;
     struct addrinfo host_info;
-    struct addrinfo *host_info_list;
+    struct addrinfo *host_info_list = NULL;
     int             SocketDescriptor;
+    int             ConnectionPollingInterval = 100;
 
-    void InitHostInfo();
+    void InitHostInfo(const char *TargetHostURL);
     void InitReceiveSocket();
+    void InitSocketIOCTL();
     void InitPort();
     void BindSocket();
     void ReceiveConnectionAttempts();
  
-    enum SocketStateIDs { 
-         DISCONNECTED,
-         GETADDRINFO_INIT,
-         SOCKET_INIT,
-         PORT_INIT,
-         BIND_INIT,
-         LISTENING
-    } SocketState = GETADDRINFO_INIT;
+    std::atomic<int> SocketState;
 
 public :
     ConnectThread( SocketThreads* SocketHandlerThreads );

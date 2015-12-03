@@ -1,10 +1,14 @@
 #include "ConnectThread.h"
 #include <iostream>
+#include <chrono>
+#include <thread>
+#include <sys/ioctl.h>
 
 
 
 
-void ConnectThread::InitHostInfo()
+
+void ConnectThread::InitHostInfo(const char *TargetHostURL)
 {
 printf( "ConnectThread::InitHostInfo\n" );
     memset(&host_info, 0, sizeof host_info);
@@ -13,15 +17,19 @@ printf( "ConnectThread::InitHostInfo\n" );
     host_info.ai_socktype = SOCK_STREAM; // Use SOCK_STREAM for TCP or SOCK_DGRAM for UDP.
     host_info.ai_flags = AI_PASSIVE;     // IP Wildcard
 
-    status = getaddrinfo(NULL, "56124", &host_info, &host_info_list);
+    if( host_info_list!=NULL )
+    {
+        freeaddrinfo(host_info_list);
+        host_info_list = NULL;
+    }
+    status = getaddrinfo(TargetHostURL, "56124", &host_info, &host_info_list);
     if (status != 0)
     {
-//        SocketState = GETADDRINFO_ERROR;
         printf("getaddrinfo error %s\n", gai_strerror(status));
     }
     else
     {
-        SocketState = SOCKET_INIT;
+        SocketState = Connect_Thread_SOCKET_INIT;
     }
 }
 
@@ -31,13 +39,31 @@ printf( "ConnectThread::InitReceiveSocket\n" );
     SocketDescriptor = socket(host_info_list->ai_family, host_info_list->ai_socktype, host_info_list->ai_protocol);
     if (SocketDescriptor == -1)
     {
-//        SocketState = SOCKET_ERROR;
         printf("socket error\n");
-        return;
+        SocketState = Connect_Thread_GETADDRINFO_INIT;
     }
     else
     {
-        SocketState = PORT_INIT;
+        SocketState = Connect_Thread_IOCTL_INIT;
+    }
+}
+
+void ConnectThread::InitSocketIOCTL()
+{
+printf( "ConnectThread::InitSocketIOCTL\n" );
+    int    on = 1;
+ 
+    status = ioctl(SocketDescriptor, FIONBIO, (char *)&on);
+    if (status < 0)
+    {
+        printf("ioctl() failed");
+        shutdown( SocketDescriptor, SHUT_RDWR);
+        SocketDescriptor = -1;
+        SocketState = Connect_Thread_GETADDRINFO_INIT;
+    }
+    else
+    {
+        SocketState = Connect_Thread_PORT_INIT;
     }
 }
 
@@ -49,12 +75,14 @@ printf( "ConnectThread::InitPort\n" );
     status = setsockopt(SocketDescriptor, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
     if (status == -1)
     {
-//        SocketState = PORT_ERROR;
         printf("setsockopt error\n");
+        shutdown( SocketDescriptor, SHUT_RDWR);
+        SocketDescriptor = -1;
+        SocketState = Connect_Thread_GETADDRINFO_INIT;
     }
     else
     {
-        SocketState = BIND_INIT;
+        SocketState = Connect_Thread_BIND_INIT;
     }
 }
 
@@ -64,73 +92,95 @@ printf( "ConnectThread::BindSocket\n" );
     status = bind(SocketDescriptor, host_info_list->ai_addr, host_info_list->ai_addrlen);
     if (status == -1)
     {
-//        SocketState = BIND_ERROR;
         printf("bind error\n");
+        shutdown( SocketDescriptor, SHUT_RDWR);
+        SocketDescriptor = -1;
+        SocketState = Connect_Thread_GETADDRINFO_INIT;
     }
     else
     {
-        SocketState = LISTENING;
+        SocketState = Connect_Thread_LISTENING;
     }
 }
 
 void ConnectThread::ReceiveConnectionAttempts()
 {
 printf( "ConnectThread::ReceiveConnectionAttempts\n" );
-    status =  listen(SocketDescriptor, 5);
+    status =  listen(SocketDescriptor, 256 );
     if (status == -1)
     {
-//        SocketState = LISTEN_ERROR;
         printf("listen error\n");
         return;
     }
 
-    int                       new_sd;
-    struct sockaddr_storage   their_addr;
-    socklen_t                 addr_size = sizeof(their_addr);
+    int AcceptStatus = 0;
+    while( AcceptStatus!= EWOULDBLOCK )
+    {
 
-    new_sd = accept(SocketDescriptor, (struct sockaddr *)&their_addr, &addr_size);
-    if (new_sd == -1)
-    {
-        printf( "listen error \n");
-        return;
-    }
-    else
-    {
-       printf("Connection accepted. Using new SocketDescriptor : %i\n", new_sd);
+        int                       new_sd;
+        struct sockaddr_storage   their_addr;
+        socklen_t                 addr_size = sizeof(their_addr);
+
+        new_sd = accept(SocketDescriptor, (struct sockaddr *)&their_addr, &addr_size);
+        if (new_sd < 0 )
+        {
+            if( errno == EWOULDBLOCK )
+            {
+                AcceptStatus = EWOULDBLOCK;
+            }
+            else
+            {
+                printf( "listen error \n");
+                return;
+            }
+        }
+        else
+        {
+            printf("Connection accepted. Using new SocketDescriptor : %i\n", new_sd);
+        }
     }
 }
 
-void ConnectThread::ConnectionListener() {
-printf( "ConnectThread::ConnectionListener, initial state = %i\n", SocketState );
+void ConnectThread::ConnectionListener()
+{
+printf( "ConnectThread::ConnectionListener\n");
 
-    while(true)
+    while(SocketState!=Connect_Thread_TERMINATE)
     {
-        if( SocketState == LISTENING )
+        if( SocketState == Connect_Thread_LISTENING )
         {
             ReceiveConnectionAttempts();
         }
-        else if( SocketState ==  GETADDRINFO_INIT )
+        else if( SocketState ==  Connect_Thread_GETADDRINFO_INIT )
         {
-            InitHostInfo();
+            InitHostInfo(NULL);
         }
-        else if( SocketState == SOCKET_INIT )
+        else if( SocketState == Connect_Thread_SOCKET_INIT )
         {
             InitReceiveSocket();
         }
-        else if( SocketState == PORT_INIT )
+        else if( SocketState == Connect_Thread_IOCTL_INIT )
+        {
+            InitSocketIOCTL();
+        }
+        else if( SocketState == Connect_Thread_PORT_INIT )
         {
             InitPort();
         }
-        else if( SocketState == BIND_INIT )
+        else if( SocketState == Connect_Thread_BIND_INIT )
         {
             BindSocket();
         }
+
+       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingInterval));
     }
+    
 
 }
 
 ConnectThread::ConnectThread(  SocketThreads* pSocketHandlerThreads )
 {
+    SocketState = Connect_Thread_GETADDRINFO_INIT;
     SocketHandlerThreads=pSocketHandlerThreads;
     ConnectionListenerThread = std::thread([=] { ConnectionListener(); });
 
@@ -138,9 +188,14 @@ ConnectThread::ConnectThread(  SocketThreads* pSocketHandlerThreads )
 
 ConnectThread::~ConnectThread()
 {
+printf( "ConnectThread::~ConnectThread begins\n");
+
+    SocketState = Connect_Thread_TERMINATE;
+
     if( host_info_list!=NULL )
     {
         freeaddrinfo(host_info_list);
     }
     ConnectionListenerThread.join();
+printf( "ConnectThread::ConnectThread completed\n");
 }
