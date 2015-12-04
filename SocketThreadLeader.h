@@ -33,14 +33,11 @@ private :
     std::list<SocketThreadList>  SocketThreadCollection;
     int                          CollectionServicingDelay = 100;
     void ServiceCollection();
+    void PointToSmallestList();
+
 
 
     std::atomic_int              State;
-
-
-    SocketThreadList             *CurrentSmallestList = NULL;
-    void PointToSmallestList();
-
 
 
     std::list<SocketEntity>      SocketQueue;
@@ -53,7 +50,6 @@ public :
     ~SocketThreadLeader();
 
     void SetNumberOfSocketLists(int pNumberOfSocketLists);
-    SocketThreadList* GetSmallestList();
 
     void AddSocketEntityToQueue(SocketEntity pSocket);
     int GetMaxToPullFromQueue();

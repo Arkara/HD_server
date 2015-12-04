@@ -63,14 +63,24 @@ void SocketThreadLeader::CheckCollectionSize()
 }
 
 void SocketThreadLeader::PointToSmallestList()
-{ //Leader points to smallest list so on its loop that list may pull from the Leader's queue. we avoid a lot of synchronization issues this way.
-    for (std::list<SocketThreadList>::iterator SocketCollectionIterator=SocketThreadCollection.begin(); SocketCollectionIterator!=SocketThreadCollection.end() ; ++SocketCollectionIterator)
+{
+//fprintf(stderr,"SocketThreadLeader::PointToSmallestList begins\n" );
+    if( SocketThreadCollection.size() >0 )
     {
-        if( CurrentSmallestList == NULL || SocketCollectionIterator->GetListSize() <  CurrentSmallestList->GetListSize() )
+        SocketThreadList *CurrentSmallestList = &(*SocketThreadCollection.begin());
+        for (std::list<SocketThreadList>::iterator SocketCollectionIterator=SocketThreadCollection.begin();
+            SocketCollectionIterator!=SocketThreadCollection.end() ; ++SocketCollectionIterator)
         {
-            CurrentSmallestList = &(*SocketCollectionIterator);
+            SocketCollectionIterator->SetSmallest( false );
+
+            if( SocketCollectionIterator->GetListSize() <  CurrentSmallestList->GetListSize() )
+            {
+                CurrentSmallestList = &(*SocketCollectionIterator);
+            }
         }
+        CurrentSmallestList->SetSmallest( true );
     }
+//fprintf(stderr,"SocketThreadLeader::PointToSmallestList ends\n" );
 }
 
 void SocketThreadLeader::AddSocketEntityToQueue(SocketEntity pSocket)
@@ -87,6 +97,7 @@ fprintf(stderr, "SocketThreadLeader::ServiceCollection begins\n" );
     while( State!=SocketThreadLeader_TERMINATE )
     {
         CheckCollectionSize();
+        PointToSmallestList();
         std::this_thread::sleep_for(std::chrono::milliseconds(CollectionServicingDelay));
     }
 fprintf(stderr, "SocketThreadLeader::ServiceCollection ends\n" );

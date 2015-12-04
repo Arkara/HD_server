@@ -37,7 +37,8 @@ void SocketThreadList::FlushToLeaderQueue()
 void SocketThreadList::RetrieveFromLeaderQueue()
 {
 //fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue begins\n" );
-    if( SocketLeader.GetQueueSize()>0 )
+
+    if( Smallest && SocketLeader.GetQueueSize()>0 )
     {
         for( int NumberRetrieved=0; NumberRetrieved<SocketLeader.GetMaxToPullFromQueue(); NumberRetrieved++ )
         {
@@ -96,4 +97,9 @@ int SocketThreadList::GetListSize()
 void SocketThreadList::Terminate()
 {
     State=SocketThreadList_TERMINATE;
+}
+
+void SocketThreadList::SetSmallest(bool pValue)
+{
+    Smallest=pValue;
 }

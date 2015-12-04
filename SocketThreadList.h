@@ -27,6 +27,7 @@ private :
     int                        ListPollingDelayInMilliseconds = 100;
     std::atomic_bool           TaggedForDeletion;
     std::atomic_int            State;
+    bool                       Smallest = false;
 
     void ServiceList();
     void FlushToLeaderQueue();
@@ -40,6 +41,7 @@ public :
     void TagForDeletion();
     int GetListSize();
     void Terminate();
+    void SetSmallest(bool pValue );
 };
 
 #endif
