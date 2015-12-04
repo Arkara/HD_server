@@ -61,7 +61,14 @@ fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue got SocketDescriptor 
 
 void SocketThreadList::PollSockets()
 {
+    //seems like at some point we should decide upon a size for network packets or allow it to be tunable or something; if tunable we have
+    //    to devise a (re-)negotiation protocol for hot changes, etc. for now I'm going to arbitrarily say max data block size of 1024 bytes.
+    char    buffer[1024];
 
+    for (std::list<SocketEntity>::iterator SocketEntityIterator=SocketDescriptors.begin(); SocketEntityIterator!=SocketDescriptors.end() ; ++SocketEntityIterator)
+    {
+         SocketEntityIterator->ServiceSocket();
+    }
 }
 
 SocketThreadList::SocketThreadList()

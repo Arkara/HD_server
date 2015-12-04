@@ -8,5 +8,8 @@ int GetNumberOfCPUCores();
 
 unsigned GetNumberOfThreadsSupported();
 
+long GetTimeInMilliseconds();
+
+
 #define _HD_Utility
 #endif

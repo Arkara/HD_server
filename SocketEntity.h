@@ -12,18 +12,19 @@
 class SocketEntity
 {
 private :
-   int    Descriptor;
-   double timestampOfLastHeartbeat = 0;
-   double timestampOfLastDataInput = 0;
+    int    Descriptor;
+    long timestampOfLastHeartbeat = 0;
+    long timestampOfLastDataInput = 0;
 
-   void ServiceSocket();
-
+    void CheckForData();
+    void DoHeartBeat();
 public :
     SocketEntity(int pDescriptor);
     ~SocketEntity();
 
     int GetDescriptor();
     void ShutdownSocket();
+    void ServiceSocket();
 };
 
 #endif
