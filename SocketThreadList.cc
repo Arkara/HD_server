@@ -1,6 +1,8 @@
 #include "SocketThreadList.h"
 #include <thread>
 #include <chrono>
+#include <iostream>
+
 
 
 
@@ -61,9 +63,27 @@ fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue got SocketDescriptor 
 
 void SocketThreadList::PollSockets()
 {
-    for (std::list<SocketEntity>::iterator SocketEntityIterator=SocketDescriptors.begin(); SocketEntityIterator!=SocketDescriptors.end() ; ++SocketEntityIterator)
+    for (std::list<SocketEntity>::iterator SocketEntityIterator=SocketDescriptors.begin(); SocketEntityIterator!=SocketDescriptors.end() ; /* ++SocketEntityIterator */)
     {
-         SocketEntityIterator->ServiceSocket();
+        if( SocketEntityIterator->IsRequestingDisconnect() )
+        {
+            long mysize=SocketDescriptors.size();
+std::cout << "SocketThreadList::PollSockets erasing begins with list size "<< mysize << std::endl;
+
+            std::list<SocketEntity>::iterator eraseTarget=SocketEntityIterator;
+            ++SocketEntityIterator;
+            eraseTarget->ShutdownSocket();
+            SocketDescriptors.erase( eraseTarget );
+
+
+            mysize=SocketDescriptors.size();
+std::cout << "SocketThreadList::PollSockets erasing ends with list size "<< mysize << std::endl;
+        }
+        else
+        {
+            SocketEntityIterator->ServiceSocket();
+            ++SocketEntityIterator;
+        }
     }
 }
 

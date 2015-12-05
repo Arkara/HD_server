@@ -13,11 +13,21 @@ class SocketEntity
 {
 private :
     int    Descriptor;
-    long timestampOfLastHeartbeat = 0;
-    long timestampOfLastDataInput = 0;
+
+    long   timestampOfLastHeartbeatSent = 0;
+    long   timestampOfLastDataOutput = 0;
+    int    OutgoingQuietMilliseconds = 5000;
+
+    long   timestampOfLastHeartbeatReceived;
+    long   timestampOfLastDataInput;
+    int    DisconnectMilliseconds = 30000;
+
+    bool Disconnect;
 
     void CheckForData();
-    void DoHeartBeat();
+    void SendHeartbeat();
+    void SendWrapper(char *bdata, long dataLength);
+
 public :
     SocketEntity(int pDescriptor);
     ~SocketEntity();
@@ -25,6 +35,9 @@ public :
     int GetDescriptor();
     void ShutdownSocket();
     void ServiceSocket();
+    void MarkForDisconnect();
+    bool IsRequestingDisconnect();
+    void SendData( char *bdata, long dataLength );
 };
 
 #endif

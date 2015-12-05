@@ -23,7 +23,7 @@
 #define Connect_Thread_PORT_INIT          3
 #define Connect_Thread_BIND_INIT          4
 #define Connect_Thread_LISTENING          5
-#define Connect_Thread_IOCTL_INIT         6
+#define Connect_Thread_SOCKET_CONFIG      6
 
 class ConnectThread
 {
@@ -37,7 +37,7 @@ private :
 
     void InitHostInfo(const char *TargetHostURL);
     void InitReceiveSocket();
-    void InitSocketIOCTL();
+    void InitSocketConfig();
     void InitPort();
     void BindSocket();
     void ReceiveConnectionAttempts();

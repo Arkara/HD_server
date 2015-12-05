@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <sys/ioctl.h>
+#include <netinet/tcp.h>
 
 
 
@@ -44,27 +45,37 @@ printf( "ConnectThread::InitReceiveSocket\n" );
     }
     else
     {
-        SocketState = Connect_Thread_IOCTL_INIT;
+        SocketState = Connect_Thread_SOCKET_CONFIG;
     }
 }
 
-void ConnectThread::InitSocketIOCTL()
+void ConnectThread::InitSocketConfig()
 {
-printf( "ConnectThread::InitSocketIOCTL\n" );
+printf( "ConnectThread::InitSocketConfig\n" );
     int    on = 1;
  
     status = ioctl(SocketDescriptor, FIONBIO, (char *)&on);
     if (status < 0)
     {
-        printf("ioctl() failed");
+printf( "ConnectThread::InitSocketConfig failed to set FIONBIO\n" );
         shutdown( SocketDescriptor, SHUT_RDWR);
         SocketDescriptor = -1;
         SocketState = Connect_Thread_GETADDRINFO_INIT;
+        return;
     }
-    else
+
+    //status = ioctl(SocketDescriptor, TCP_NODELAY, (char *)&on);
+    status = setsockopt(SocketDescriptor, IPPROTO_TCP, TCP_NODELAY, (char *) &on, sizeof(int)); 
+    if (status < 0)
     {
-        SocketState = Connect_Thread_PORT_INIT;
+printf( "ConnectThread::InitSocketConfig failed to set TCP_NODELAY\n" );
+        shutdown( SocketDescriptor, SHUT_RDWR);
+        SocketDescriptor = -1;
+        SocketState = Connect_Thread_GETADDRINFO_INIT;
+        return;
     }
+
+    SocketState = Connect_Thread_PORT_INIT;
 }
 
 void ConnectThread::InitPort()
@@ -160,9 +171,9 @@ printf( "ConnectThread::ConnectionListener\n");
         {
             InitReceiveSocket();
         }
-        else if( SocketState == Connect_Thread_IOCTL_INIT )
+        else if( SocketState == Connect_Thread_SOCKET_CONFIG )
         {
-            InitSocketIOCTL();
+            InitSocketConfig();
         }
         else if( SocketState == Connect_Thread_PORT_INIT )
         {

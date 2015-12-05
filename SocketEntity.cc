@@ -1,14 +1,21 @@
 #include "SocketEntity.h"
 #include <thread>
-//#include <chrono>
 #include "Utility.h"
+#include <iostream>
 
 
 
 
 SocketEntity::SocketEntity(int pDescriptor)
 {
+    long CurrentTime =  GetTimeInMilliseconds();
+
+    timestampOfLastHeartbeatReceived = CurrentTime;
+    timestampOfLastDataInput = CurrentTime;
+
     Descriptor = pDescriptor;
+    Disconnect = false;
+ 
 }
 
 SocketEntity::~SocketEntity()
@@ -29,10 +36,41 @@ int SocketEntity::GetDescriptor()
 
 void SocketEntity::ServiceSocket()
 {
+//fprintf( stderr, "SocketEntity::ServiceSocket %i begins\n", Descriptor );
     CheckForData();
-//    DoHeartBeat();
+
+    long MostRecentOutput;
+    long MostRecentInput;
+    long CurrentTime =  GetTimeInMilliseconds();
+
+
+    MostRecentOutput=timestampOfLastHeartbeatSent>timestampOfLastDataOutput?timestampOfLastHeartbeatSent:timestampOfLastDataOutput;
+    if( MostRecentOutput+OutgoingQuietMilliseconds < CurrentTime )
+    {
+        SendHeartbeat();
+    }
+
+    MostRecentInput=timestampOfLastHeartbeatReceived>timestampOfLastDataInput?timestampOfLastHeartbeatReceived:timestampOfLastDataInput;
+    if( MostRecentInput+DisconnectMilliseconds < CurrentTime )
+    {
+        MarkForDisconnect();
+    }
+//fprintf( stderr, "SocketEntity::ServiceSocket %i ends\n", Descriptor );
 }
 
+/////
+// 
+//  Here we only know about sending and receiving data.
+//  IF We are going to emulate SCTP it would happen at a layer obove this.
+//  Encryption and compression would also happen at a higher level.
+//
+//  The one thing this level does need to understand is if we are doing TCP
+//    or UDP. If UDP, we'll need to implement buffering, sequence tracking, 
+//    retransmission and lost packet requesting...which begs the question
+//    of why aren't we using the low level facilities for those things that
+//    TCP provides and then tuning it to meet our needs?
+//    I hope TCP works OK for us, though I'm told it won't.
+//
 void SocketEntity::CheckForData()
 {
 //fprintf( stderr, "SocketEntity::CheckForData ( %i )\n", Descriptor );
@@ -53,9 +91,9 @@ void SocketEntity::CheckForData()
         }
         else
         {
-            if( buffer[0]=='H' && buffer[1]=='B' && buffer[2]==0 )
+            if( buffer[0]==1 && buffer[1]==1 && buffer[2]==0 )
             {
-                timestampOfLastHeartbeat = GetTimeInMilliseconds();
+                timestampOfLastHeartbeatReceived = GetTimeInMilliseconds();
             }
             else
             {
@@ -64,4 +102,77 @@ void SocketEntity::CheckForData()
             }
         }
     }
+}
+
+void SocketEntity::SendHeartbeat()
+{
+fprintf( stderr, "SocketEntity::SendHeartbeat\n" );
+    char MessageBuffer[3];
+
+    MessageBuffer[0]=1;
+    MessageBuffer[1]=1;
+    MessageBuffer[2]=0;
+
+    timestampOfLastHeartbeatSent=GetTimeInMilliseconds();
+
+    SendWrapper( MessageBuffer, 2 );
+    
+}
+
+void SocketEntity::SendData( char *bdata, long dataLength )
+{
+fprintf( stderr, "SocketEntity::SendData\n" );
+            
+    SendWrapper( bdata, dataLength );
+    timestampOfLastDataOutput=GetTimeInMilliseconds();
+}
+
+void SocketEntity::SendWrapper( char *bdata, long dataLength )
+{
+fprintf( stderr, "SocketEntity::SendWrapper\n" );
+    long retValue;
+    char buffer[1024];
+
+    memcpy( buffer, bdata, dataLength>1023?1023:dataLength );
+    buffer[1023]=0;
+
+    retValue = send( Descriptor, buffer, 1023, 0 );
+
+    if( retValue <0 )
+    {
+        if( errno!=EAGAIN && errno!=EWOULDBLOCK )
+        {
+            if( errno==ECONNRESET)
+            {
+                fprintf( stderr, "SocketEntity::SendWrapper reports connection reset by client\n" );
+            }
+            else
+            {
+                fprintf( stderr, "SocketEntity::SendWrapper got error %i and is disconnecting socket\n", errno );
+            }
+            MarkForDisconnect();
+        }
+    }
+    else if ( retValue != dataLength )
+    {
+std::cout << "SocketEntity::SendWrapper sent " << retValue << " bytes, expected to send " <<dataLength <<std::endl;
+        //fprintf( stderr, "SocketEntity::SendWrapper data size sent does not match expected.\n" );
+    }
+}
+
+
+//
+////
+
+void SocketEntity::MarkForDisconnect()
+{
+fprintf( stderr, "SocketEntity::MarkForDisconnect\n" );
+    Disconnect = true;
+}
+
+bool SocketEntity::IsRequestingDisconnect()
+{
+    bool retDisconnect = Disconnect;
+
+    return retDisconnect;
 }
