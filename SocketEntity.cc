@@ -90,14 +90,21 @@ void SocketEntity::CheckForData()
         char buffer[1024];
         memset( buffer, 0, 1024 );
 
-        int rc = recv( Descriptor, buffer, sizeof(buffer), 0);
+        int rc = recv( Descriptor, buffer, sizeof(buffer), MSG_DONTWAIT);
 
-        if (rc < 1)
+        if (rc < 0)
         {
             if (errno != EWOULDBLOCK && errno != EAGAIN )
             {
-//fprintf( stderr, "SocketEntity::CheckForData ( %i ) got error %i\n", Descriptor, errno );
+                fprintf( stderr, "SocketEntity::CheckForData ( %i ) got error %i\n", Descriptor, errno );
+                MarkForDisconnect();
             }
+            break;
+        }
+        else if ( rc==0 )
+        {
+            fprintf( stderr, "SocketEntity::CheckForData client closed connection\n" );
+            MarkForDisconnect();
             break;
         }
         else
@@ -145,7 +152,7 @@ fprintf( stderr, "SocketEntity::SendWrapper\n" );
     memcpy( buffer, bdata, dataLength>1023?1023:dataLength );
     buffer[1023]=0;
 
-    retValue = send( Descriptor, buffer, dataLength, MSG_NOSIGNAL );
+    retValue = send( Descriptor, buffer, dataLength, MSG_NOSIGNAL|MSG_DONTWAIT );
 
     if( retValue <0 )
     {
