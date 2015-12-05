@@ -28,6 +28,7 @@ private :
     std::atomic_bool           TaggedForDeletion;
     std::atomic_int            State;
     bool                       Smallest = false;
+    unsigned                   ListID;
 
     void ServiceList();
     void FlushToLeaderQueue();
@@ -42,6 +43,9 @@ public :
     int GetListSize();
     void Terminate();
     void SetSmallest(bool pValue );
+
+    unsigned GetSocketListID();
+    void SetSocketListID(unsigned pListID);
 };
 
 #endif

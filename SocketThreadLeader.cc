@@ -24,12 +24,46 @@ void SocketThreadLeader::SetNumberOfSocketLists(int pNumberOfSocketLists)
     }
 }
 
+void SocketThreadLeader::IDSocketLists()
+{
+    //The lists *should* always be number smallest to largest from the beginning to the end of the list,
+    //    BUT it's not guaranteed that items in the list will never be rearranged so we'll make two passes:
+    //    the first to get the max and the second to assign the numbers. we could store this number in the
+    //    SocketThreadLeader but then we'd have to maintain it seperately and considering how seldom this
+    //    operation *should* be used it seems not worth the risk/effort.
+
+    int  NextSocketID = 1;
+
+    for (std::list<SocketThreadList>::iterator SocketCollectionIterator=SocketThreadCollection.begin();
+        SocketCollectionIterator!=SocketThreadCollection.end() ; ++SocketCollectionIterator)
+    {
+        int CurrentSocketID = (*SocketCollectionIterator).GetSocketListID();
+        if( CurrentSocketID>=NextSocketID )
+        {
+            NextSocketID=CurrentSocketID+1;
+        }
+    }
+
+    for (std::list<SocketThreadList>::iterator SocketCollectionIterator=SocketThreadCollection.begin();
+        SocketCollectionIterator!=SocketThreadCollection.end() ; ++SocketCollectionIterator)
+    {
+        int CurrentSocketID = (*SocketCollectionIterator).GetSocketListID();
+        if( CurrentSocketID==0 )
+        {
+            (*SocketCollectionIterator).SetSocketListID(NextSocketID);
+            NextSocketID++;
+        }
+    }
+}
+
 void SocketThreadLeader::GrowListCollection()
 {
     while( SocketThreadCollection.size() < NumberOfSocketLists )
     {
         SocketThreadCollection.emplace_back();
     }
+
+    IDSocketLists();
 }
 
 void SocketThreadLeader::ShrinkListCollection()

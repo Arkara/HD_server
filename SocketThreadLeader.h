@@ -61,6 +61,8 @@ public :
 
     int GetMaxToPullFromQueue();
     int GetQueueSize();
+
+    void IDSocketLists();
 };
 
 

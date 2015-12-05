@@ -53,7 +53,7 @@ void SocketThreadList::RetrieveFromLeaderQueue()
             }
             else
             {
-fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue got SocketDescriptor %i\n", CurrentSocketEntity->GetDescriptor() );
+fprintf(stderr, "SocketThreadList( %u )::RetrieveFromLeaderQueue got SocketDescriptor %i\n", ListID, CurrentSocketEntity->GetDescriptor() );
                 SocketDescriptors.push_back(CurrentSocketEntity);
             }
         }
@@ -126,4 +126,14 @@ void SocketThreadList::Terminate()
 void SocketThreadList::SetSmallest(bool pValue)
 {
     Smallest=pValue;
+}
+
+unsigned SocketThreadList::GetSocketListID()
+{
+    return ListID;
+}
+
+void SocketThreadList::SetSocketListID(unsigned pListID)
+{
+    ListID = pListID;
 }
