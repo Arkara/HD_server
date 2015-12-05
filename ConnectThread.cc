@@ -147,8 +147,11 @@ void ConnectThread::ReceiveConnectionAttempts()
         }
         else
         {
-            printf("Connection accepted. Using new SocketDescriptor : %i\n", new_sd);
-            SocketLeader.AddSocketEntityToQueue(SocketEntity(new_sd));
+            SocketEntity *NewSocketEntity = SocketLeader.GetUnusedSocketEntity();
+
+            NewSocketEntity->StartupSocket( new_sd );
+            SocketLeader.AddSocketEntityToQueue(NewSocketEntity);
+            printf("Connection accepted. Using new SocketDescriptor : %i\n", NewSocketEntity->GetDescriptor());
         }
     }
 }

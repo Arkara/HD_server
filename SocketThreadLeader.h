@@ -40,7 +40,9 @@ private :
     std::atomic_int              State;
 
 
-    std::list<SocketEntity>      SocketQueue;
+    std::list<SocketEntity*>      SocketQueue;
+    std::list<SocketEntity*>      UnusedSocketQueue;
+
 
     int                          MaxToPullFromQueue = 10;
 
@@ -51,9 +53,13 @@ public :
 
     void SetNumberOfSocketLists(int pNumberOfSocketLists);
 
-    void AddSocketEntityToQueue(SocketEntity pSocket);
+    void AddSocketEntityToQueue(SocketEntity *pSocket);
+    void AddSocketEntityToUnusedQueue(SocketEntity *pSocket);
+
+    SocketEntity *GetUnusedSocketEntity();
+    SocketEntity *GetHeadOfQueue();
+
     int GetMaxToPullFromQueue();
-    SocketEntity GetHeadOfQueue();
     int GetQueueSize();
 };
 

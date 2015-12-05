@@ -22,7 +22,7 @@
 class SocketThreadList
 {
 private :
-    std::list<SocketEntity>    SocketDescriptors;
+    std::list<SocketEntity*>   SocketDescriptors;
     std::thread                WorkerThread; 
     int                        ListPollingDelayInMilliseconds = 100;
     std::atomic_bool           TaggedForDeletion;

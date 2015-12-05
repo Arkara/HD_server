@@ -32,8 +32,10 @@ public :
     SocketEntity(int pDescriptor);
     ~SocketEntity();
 
-    int GetDescriptor();
+    void StartupSocket(int pDescriptor);
     void ShutdownSocket();
+
+    int GetDescriptor();
     void ServiceSocket();
     void MarkForDisconnect();
     bool IsRequestingDisconnect();

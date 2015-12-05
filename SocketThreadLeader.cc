@@ -44,7 +44,7 @@ void SocketThreadLeader::ShrinkListCollection()
     for (std::list<SocketThreadList>::reverse_iterator SocketCollectionIterator=SocketThreadCollection.rbegin();
         SocketThreadCollection.size()>NumberOfSocketLists || SocketCollectionIterator!=SocketThreadCollection.rend() ; ++SocketCollectionIterator)
     {
-         SocketCollectionIterator->TagForDeletion();
+         (*SocketCollectionIterator).TagForDeletion();
     }
 }
 
@@ -83,13 +83,19 @@ void SocketThreadLeader::PointToSmallestList()
 //fprintf(stderr,"SocketThreadLeader::PointToSmallestList ends\n" );
 }
 
-void SocketThreadLeader::AddSocketEntityToQueue(SocketEntity pSocket)
+void SocketThreadLeader::AddSocketEntityToQueue(SocketEntity *pSocket)
 {
-fprintf(stderr, "SocketThreadLeader::AddSocketEntityToQueue( socket descriptor %i )\n", pSocket.GetDescriptor() );
+fprintf(stderr, "SocketThreadLeader::AddSocketEntityToQueue( socket descriptor %i )\n", pSocket->GetDescriptor() );
     SocketQueue.push_back( pSocket );
 fprintf(stderr, "SocketThreadLeader::AddSocketEntityToQueue ends\n" );
 }
 
+void SocketThreadLeader::AddSocketEntityToUnusedQueue(SocketEntity *pSocket)
+{
+fprintf(stderr, "SocketThreadLeader::AddSocketEntityToUnusedQueue\n" );
+    UnusedSocketQueue.push_back( pSocket );
+fprintf(stderr, "SocketThreadLeader::AddSocketEntityToUnusedQueue ends\n" );
+}
 
 void SocketThreadLeader::ServiceCollection() {
 fprintf(stderr, "SocketThreadLeader::ServiceCollection begins\n" );
@@ -120,30 +126,55 @@ SocketThreadLeader::~SocketThreadLeader()
 {
 fprintf(stderr, "SocketThreadLeader::~SocketThreadLeader begins\n" );
     State=SocketThreadLeader_TERMINATE;
+
     SocketThreadCollection.erase(SocketThreadCollection.begin(),SocketThreadCollection.end());
+
+    for (std::list<SocketEntity*>::iterator SocketEntityIterator=UnusedSocketQueue.begin();
+        SocketEntityIterator!=UnusedSocketQueue.end() ; ++SocketEntityIterator)
+    {
+         delete (*SocketEntityIterator);
+    }
+    UnusedSocketQueue.erase(UnusedSocketQueue.begin(), UnusedSocketQueue.end());
+
     LeaderThread.join();
 fprintf(stderr, "SocketThreadLeader::~SocketThreadLeader ends\n" );
 }
 
-SocketEntity SocketThreadLeader::GetHeadOfQueue()
+SocketEntity *SocketThreadLeader::GetUnusedSocketEntity()
 {
-fprintf(stderr, " SocketThreadLeader::GetHeadOfQueue begins\n" );
     SocketEntity *CurrentSocket = NULL;
 
-    if( SocketQueue.size()==0 )
+    if( UnusedSocketQueue.size()==0 )
     {
+fprintf(stderr, "SocketThreadLeader::GetUnusedSocketEntity creating new SocketEntity\n" );
         CurrentSocket = new SocketEntity( -1 );
     }
     else
     {
-        
-        std::list<SocketEntity>::iterator SocketQueueIterator=SocketQueue.begin();
-        CurrentSocket = &(*SocketQueueIterator);
+fprintf(stderr, "SocketThreadLeader::GetUnusedSocketEntity recycling SocketEntity\n" );
+        CurrentSocket =  *UnusedSocketQueue.begin();
+        UnusedSocketQueue.pop_front();
+    }
+    return CurrentSocket;
+}
+
+SocketEntity *SocketThreadLeader::GetHeadOfQueue()
+{
+fprintf(stderr, "SocketThreadLeader::GetHeadOfQueue begins\n" );
+    SocketEntity *CurrentSocket = NULL;
+
+    if( SocketQueue.size()==0 )
+    {
+        CurrentSocket = GetUnusedSocketEntity();
+    }
+    else
+    {
+        CurrentSocket =  *(SocketQueue.begin());
         SocketQueue.pop_front();
     }
 
-fprintf(stderr, " SocketThreadLeader::GetHeadOfQueue ends\n" );
-    return *CurrentSocket;
+fprintf(stderr, "SocketThreadLeader::GetHeadOfQueue ends\n" );
+    return CurrentSocket;
 }
 
 int SocketThreadLeader::GetMaxToPullFromQueue()

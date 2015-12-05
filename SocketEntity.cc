@@ -8,6 +8,11 @@
 
 SocketEntity::SocketEntity(int pDescriptor)
 {
+    StartupSocket( pDescriptor );
+}
+
+void SocketEntity::StartupSocket(int pDescriptor)
+{
     long CurrentTime =  GetTimeInMilliseconds();
 
     timestampOfLastHeartbeatReceived = CurrentTime;
@@ -18,14 +23,20 @@ SocketEntity::SocketEntity(int pDescriptor)
  
 }
 
+
 SocketEntity::~SocketEntity()
 {
+    ShutdownSocket();
 }
 
 void SocketEntity::ShutdownSocket()
 {
 fprintf(stderr, "SocketEntity::ShutdownSocket ( %i )\n", Descriptor );
-    shutdown( Descriptor, SHUT_RDWR);
+    if( Descriptor>0 )
+    {
+        shutdown( Descriptor, SHUT_RDWR);
+        Descriptor = -1;
+    }
 fprintf(stderr, "SocketEntity::ShutdownSocket ends\n" );
 }
 
@@ -104,18 +115,15 @@ void SocketEntity::CheckForData()
     }
 }
 
+char HeartbeatMessage[] = { 1, 1, 0 };
+
 void SocketEntity::SendHeartbeat()
 {
 fprintf( stderr, "SocketEntity::SendHeartbeat\n" );
-    char MessageBuffer[3];
-
-    MessageBuffer[0]=1;
-    MessageBuffer[1]=1;
-    MessageBuffer[2]=0;
 
     timestampOfLastHeartbeatSent=GetTimeInMilliseconds();
 
-    SendWrapper( MessageBuffer, 2 );
+    SendWrapper( HeartbeatMessage, strlen(HeartbeatMessage) );
     
 }
 
@@ -133,16 +141,17 @@ fprintf( stderr, "SocketEntity::SendWrapper\n" );
     long retValue;
     char buffer[1024];
 
+    memset( buffer, 0, 1024 );
     memcpy( buffer, bdata, dataLength>1023?1023:dataLength );
     buffer[1023]=0;
 
-    retValue = send( Descriptor, buffer, 1023, 0 );
+    retValue = send( Descriptor, buffer, dataLength, MSG_NOSIGNAL );
 
     if( retValue <0 )
     {
         if( errno!=EAGAIN && errno!=EWOULDBLOCK )
         {
-            if( errno==ECONNRESET)
+            if( errno==ECONNRESET||errno==EPIPE)
             {
                 fprintf( stderr, "SocketEntity::SendWrapper reports connection reset by client\n" );
             }

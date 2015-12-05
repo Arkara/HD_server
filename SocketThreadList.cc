@@ -44,16 +44,16 @@ void SocketThreadList::RetrieveFromLeaderQueue()
     {
         for( int NumberRetrieved=0; NumberRetrieved<SocketLeader.GetMaxToPullFromQueue(); NumberRetrieved++ )
         {
-            SocketEntity  CurrentSocketEntity = SocketLeader.GetHeadOfQueue();
+            SocketEntity  *CurrentSocketEntity = SocketLeader.GetHeadOfQueue();
 
-            if( CurrentSocketEntity.GetDescriptor()==-1 ) //we reached the end of the list
+            if( CurrentSocketEntity->GetDescriptor()==-1 ) //we reached the end of the list
             {
-                CurrentSocketEntity.~SocketEntity();
+                SocketLeader.AddSocketEntityToUnusedQueue( CurrentSocketEntity );
                 break;
             }
             else
             {
-fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue got SocketDescriptor %i\n", CurrentSocketEntity.GetDescriptor() );
+fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue got SocketDescriptor %i\n", CurrentSocketEntity->GetDescriptor() );
                 SocketDescriptors.push_back(CurrentSocketEntity);
             }
         }
@@ -63,16 +63,17 @@ fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue got SocketDescriptor 
 
 void SocketThreadList::PollSockets()
 {
-    for (std::list<SocketEntity>::iterator SocketEntityIterator=SocketDescriptors.begin(); SocketEntityIterator!=SocketDescriptors.end() ; /* ++SocketEntityIterator */)
+    for (std::list<SocketEntity*>::iterator SocketEntityIterator=SocketDescriptors.begin(); SocketEntityIterator!=SocketDescriptors.end() ; /* ++SocketEntityIterator */)
     {
-        if( SocketEntityIterator->IsRequestingDisconnect() )
+        if( (*SocketEntityIterator)->IsRequestingDisconnect() )
         {
             long mysize=SocketDescriptors.size();
 std::cout << "SocketThreadList::PollSockets erasing begins with list size "<< mysize << std::endl;
 
-            std::list<SocketEntity>::iterator eraseTarget=SocketEntityIterator;
+            std::list<SocketEntity*>::iterator eraseTarget=SocketEntityIterator;
             ++SocketEntityIterator;
-            eraseTarget->ShutdownSocket();
+            (*eraseTarget)->ShutdownSocket();
+            SocketLeader.AddSocketEntityToUnusedQueue( *eraseTarget );
             SocketDescriptors.erase( eraseTarget );
 
 
@@ -81,7 +82,7 @@ std::cout << "SocketThreadList::PollSockets erasing ends with list size "<< mysi
         }
         else
         {
-            SocketEntityIterator->ServiceSocket();
+            (*SocketEntityIterator)->ServiceSocket();
             ++SocketEntityIterator;
         }
     }
@@ -101,9 +102,9 @@ SocketThreadList::~SocketThreadList()
 {
 fprintf(stderr, "SocketThreadList::~SocketThreadList begins\n");
     Terminate();      
-    for (std::list<SocketEntity>::iterator SocketEntityIterator=SocketDescriptors.begin(); SocketEntityIterator!=SocketDescriptors.end() ; ++SocketEntityIterator)
+    for (std::list<SocketEntity*>::iterator SocketEntityIterator=SocketDescriptors.begin(); SocketEntityIterator!=SocketDescriptors.end() ; ++SocketEntityIterator)
     {
-         SocketEntityIterator->ShutdownSocket();
+         (*SocketEntityIterator)->ShutdownSocket();
     }
     SocketDescriptors.erase(SocketDescriptors.begin(),SocketDescriptors.end());
      

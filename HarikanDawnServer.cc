@@ -27,12 +27,15 @@ int main()
 
 
 printf( "Harikan Dawn Server rev 0.0.1\n" );
+fprintf(stderr, "object sizes :\n   SocketThreadLeader = %lu\n   SocketThreadList = %lu\n   SocketEntity = %lu\n\n",
+    sizeof( SocketThreadLeader),
+    sizeof( SocketThreadList),
+    sizeof( SocketEntity) );
 
     ApplyConfiguration();
 
     while ( !EndProgram )
     {
-        printf ( " HD: " );
         scanf( "%1023s", InputBuffer );
         if( strstr(InputBuffer,"quit")==InputBuffer )
         {
