@@ -126,7 +126,7 @@ char HeartbeatMessage[] = { 1, 1, 0 };
 
 void SocketEntity::SendHeartbeat()
 {
-fprintf( stderr, "SocketEntity::SendHeartbeat\n" );
+//fprintf( stderr, "SocketEntity::SendHeartbeat\n" );
 
     timestampOfLastHeartbeatSent=GetTimeInMilliseconds();
 
@@ -136,7 +136,7 @@ fprintf( stderr, "SocketEntity::SendHeartbeat\n" );
 
 void SocketEntity::SendData( char *bdata, long dataLength )
 {
-fprintf( stderr, "SocketEntity::SendData\n" );
+//fprintf( stderr, "SocketEntity::SendData\n" );
             
     SendWrapper( bdata, dataLength );
     timestampOfLastDataOutput=GetTimeInMilliseconds();
@@ -144,7 +144,7 @@ fprintf( stderr, "SocketEntity::SendData\n" );
 
 void SocketEntity::SendWrapper( char *bdata, long dataLength )
 {
-fprintf( stderr, "SocketEntity::SendWrapper\n" );
+//fprintf( stderr, "SocketEntity::SendWrapper\n" );
     long retValue;
     char buffer[1024];
 
