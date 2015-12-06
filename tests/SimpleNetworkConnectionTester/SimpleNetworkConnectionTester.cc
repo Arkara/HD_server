@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <chrono>
+#include <thread>
 
 int GetRandScaled(int scale)
 {
@@ -66,7 +68,7 @@ int main()
         bytes_sent = send(socketfd, msg, len, 0);
 
         std::cout << "Waiting to recieve data..."  << std::endl;
-        bytes_recieved = recv(socketfd, incomming_data_buffer,1024, 0);
+        bytes_recieved = recv(socketfd, incomming_data_buffer,1024, MSG_DONTWAIT);
         if (bytes_recieved == 0) 
         {
             std::cout << "host shut down." << std::endl ;
@@ -89,7 +91,17 @@ int main()
             sprintf( msg, "message %i", rand() );
             printf( "sending \"%s\"\n", msg );
         }
-        sleep( GetRandScaled(20));
+        if( GetRandScaled(100) <70 )
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds( GetRandScaled(100)));
+        }
+        else
+        {
+            int WaitSeconds =  GetRandScaled(20);
+
+            printf( "Waiting %i seconds\n", WaitSeconds );
+            sleep( WaitSeconds);
+        }
     }
 
     if (bytes_recieved == -1)std::cout << "recieve error!" << std::endl ;
