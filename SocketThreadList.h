@@ -24,7 +24,7 @@ class SocketThreadList
 private :
     std::list<SocketEntity*>   SocketDescriptors;
     std::thread                WorkerThread; 
-    int                        ListPollingDelayInMilliseconds = 100;
+    int                        ListPollingDelayInMilliseconds = 10;
     std::atomic_bool           TaggedForDeletion;
     std::atomic_int            State;
     bool                       Smallest = false;
