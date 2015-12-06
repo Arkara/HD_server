@@ -6,12 +6,12 @@
 
 
 
-SocketEntity::SocketEntity(int pDescriptor)
+SocketEntity::SocketEntity(int pDescriptor, char *pIPAddress)
 {
-    StartupSocket( pDescriptor );
+    StartupSocket( pDescriptor, pIPAddress );
 }
 
-void SocketEntity::StartupSocket(int pDescriptor)
+void SocketEntity::StartupSocket(int pDescriptor, char *pIPAddress)
 {
     long CurrentTime =  GetTimeInMilliseconds();
 
@@ -19,10 +19,9 @@ void SocketEntity::StartupSocket(int pDescriptor)
     timestampOfLastDataInput = CurrentTime;
 
     Descriptor = pDescriptor;
+    sprintf( IPAddressString, "%-7.45s", pIPAddress );
     Disconnect = false;
- 
 }
-
 
 SocketEntity::~SocketEntity()
 {

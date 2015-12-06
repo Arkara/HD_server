@@ -181,7 +181,8 @@ SocketEntity *SocketThreadLeader::GetUnusedSocketEntity()
     if( UnusedSocketQueue.size()==0 )
     {
 fprintf(stderr, "SocketThreadLeader::GetUnusedSocketEntity creating new SocketEntity\n" );
-        CurrentSocket = new SocketEntity( -1 );
+        char buffer[]= { "0.0.0.0" };
+        CurrentSocket = new SocketEntity( -1, buffer );
     }
     else
     {

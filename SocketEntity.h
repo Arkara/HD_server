@@ -13,6 +13,7 @@ class SocketEntity
 {
 private :
     int    Descriptor;
+    char   IPAddressString[46]; //15 for IPv4 or 45 for IPv6, plus 1 for NULL termination.
 
     long   timestampOfLastHeartbeatSent = 0;
     long   timestampOfLastDataOutput = 0;
@@ -29,10 +30,10 @@ private :
     void SendWrapper(char *bdata, long dataLength);
 
 public :
-    SocketEntity(int pDescriptor);
+    SocketEntity(int pDescriptor, char *pIPAddress);
     ~SocketEntity();
 
-    void StartupSocket(int pDescriptor);
+    void StartupSocket(int pDescriptor, char *pIPAddress );
     void ShutdownSocket();
 
     int GetDescriptor();

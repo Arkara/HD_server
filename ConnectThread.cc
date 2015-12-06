@@ -4,6 +4,8 @@
 #include <thread>
 #include <sys/ioctl.h>
 #include <netinet/tcp.h>
+#include <arpa/inet.h>
+
 
 
 
@@ -129,7 +131,7 @@ void ConnectThread::ReceiveConnectionAttempts()
     {
 
         int                       new_sd;
-        struct sockaddr_storage   their_addr;
+        struct sockaddr_in        their_addr;
         socklen_t                 addr_size = sizeof(their_addr);
 
         new_sd = accept(SocketDescriptor, (struct sockaddr *)&their_addr, &addr_size);
@@ -147,9 +149,13 @@ void ConnectThread::ReceiveConnectionAttempts()
         }
         else
         {
+            char str[INET_ADDRSTRLEN];
+
+            inet_ntop(AF_INET, &(their_addr.sin_addr), str, INET_ADDRSTRLEN);
+
             SocketEntity *NewSocketEntity = SocketLeader.GetUnusedSocketEntity();
 
-            NewSocketEntity->StartupSocket( new_sd );
+            NewSocketEntity->StartupSocket( new_sd, str );
             SocketLeader.AddSocketEntityToQueue(NewSocketEntity);
             printf("Connection accepted. Using new SocketDescriptor : %i\n", NewSocketEntity->GetDescriptor());
         }
