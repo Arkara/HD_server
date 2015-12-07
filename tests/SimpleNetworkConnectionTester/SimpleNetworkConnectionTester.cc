@@ -23,7 +23,7 @@ int main()
 
 
     //wait a random number of seconds from 0-100 before starting
-    sleep(GetRandScaled(60));
+    sleep(GetRandScaled(10));
     
 
     int status;
