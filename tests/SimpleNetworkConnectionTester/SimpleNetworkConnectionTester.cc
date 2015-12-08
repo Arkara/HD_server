@@ -55,12 +55,12 @@ int main()
     char msg[128];
     char incomming_data_buffer[1024];
     ssize_t bytes_recieved;
-
+    int countdown = GetRandScaled(500);
 
     sprintf( msg, "Hello from Simple network tester %i", rand() );
-    std::cout << "send()ing message : "  << msg << std::endl;
+    printf ("send()ing message 1 of %i : %s\n", countdown, msg );
 
-    while( true )
+    for( ; countdown>0; countdown-- ) //do between 1 and 500 transactions
     {
         int len;
         ssize_t bytes_sent;
@@ -91,7 +91,7 @@ int main()
             sprintf( msg, "message %i", rand() );
             printf( "sending \"%s\"\n", msg );
         }
-        if( GetRandScaled(100) <70 )
+        if( GetRandScaled(100) <95 )
         {
             std::this_thread::sleep_for(std::chrono::milliseconds( GetRandScaled(100)));
         }
