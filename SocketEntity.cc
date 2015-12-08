@@ -191,3 +191,8 @@ bool SocketEntity::IsRequestingDisconnect()
 
     return retDisconnect;
 }
+
+DataModule *SocketEntity::ProvideData()
+{
+    return new SocketEntity( -1, (char *)"0.0.0.0" );
+}

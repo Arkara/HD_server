@@ -43,9 +43,32 @@ void DataModule::InsertAfterThisNode(DataModule *pData)
     }
 }
 
+
+
+
+
+DataModulePool::DataModulePool()
+{
+    Gate = new std::mutex;
+}
+
+DataModulePool::~DataModulePool()
+{
+    DataModule *CurrentData = NULL;
+
+    delete Gate;
+
+    while( PoolHead!=NULL )
+    {
+        CurrentData = PoolHead;
+        PoolHead = PoolHead->GetNext();
+        delete CurrentData;
+    }
+}
+
 void DataModulePool::Push_back( DataModule *pData )
 {
-    Gate.lock(); 
+std::lock_guard<std::mutex> lock(*Gate);
 
         //note that we do ensure that the DataModule controlled field is cleared in order to protect the 
         //    integrity of the list, but we do not touch the rest of the object. That *should* be explicitly
@@ -62,13 +85,11 @@ void DataModulePool::Push_back( DataModule *pData )
             PoolTail->SetNext(pData);
             PoolTail=pData;
         }
-
-    Gate.unlock(); 
 }
 
 DataModule *DataModulePool::Pop_front()
 {
-    Gate.lock();
+std::lock_guard<std::mutex> lock(*Gate);
 
         DataModule *tData;
 
@@ -80,15 +101,27 @@ DataModule *DataModulePool::Pop_front()
         }
         else
         {
-            //what we SHOULD do here is return a new, blank object...but I'm not sure how to do that yet,
-            //    so I'm going to do the old fashioned and VERY VERY UNSAFE AND UNCLEAN THING AS A PLACEHOLDER ONLY!!!
-
-            tData = NULL;
+            if( DataProvider==NULL )
+            {
+                tData = NULL;
+            }
+            else
+            {
+                tData = DataProvider->ProvideData();
+            }
         }
 
-    Gate.unlock();
-
     return tData;
+}
+
+DataModule *DataModulePool::ProvideData()
+{
+    Pop_front();
+}
+
+void DataModulePool::SetProvider(DataModule *pProvider)
+{
+    DataProvider = pProvider;
 }
 
 
@@ -116,3 +149,22 @@ void PluginModule::NotifyOfTermination()
 {
 };
 
+void PluginModule::SetOutputPool(DataModulePool *pPool )
+{
+    DataOutputPool = pPool;
+}
+
+DataModulePool *PluginModule::GetOutputPool()
+{
+    return DataOutputPool;
+}
+
+void PluginModule::SetInputPool(DataModulePool *pPool )
+{
+    DataInputPool = pPool;
+}
+
+DataModulePool *PluginModule::GetInputPool()
+{
+    return DataInputPool;
+}

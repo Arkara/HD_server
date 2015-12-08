@@ -21,19 +21,27 @@ public :
     virtual void SetNext(DataModule *pData) final;
     virtual void AppendToEndOfList(DataModule *pData) final; 
     virtual void InsertAfterThisNode(DataModule *pData) final;
+    virtual DataModule *ProvideData() = 0;
 };
 
 
-class DataModulePool
+class DataModulePool : public DataModule
 {
 private:
     DataModule *PoolHead = NULL;    
     DataModule *PoolTail = NULL;    
-    std::mutex Gate;
+    DataModule *DataProvider = NULL;
+    DataModule *DataConsumer = NULL;
+    std::mutex *Gate;
 
 public:
+    DataModulePool();
+    ~DataModulePool();
     virtual void Push_back(DataModule *p) final;
     virtual DataModule *Pop_front() final;
+    void SetProvider( DataModule *pProvider );
+    void SetConsumer( DataModule *pConsumer );
+    DataModule *ProvideData();
 };
 
 
@@ -44,6 +52,8 @@ class PluginModule
 {
 protected :
     PluginModule *NextPluginModule = NULL;
+    DataModulePool *DataInputPool = NULL;
+    DataModulePool *DataOutputPool = NULL;
 
 public :
     virtual void ReceiveData( DataModule *pData );
@@ -52,10 +62,13 @@ public :
     virtual void NotifyOfTermination();
 
     void SetNextPluginModule( PluginModule *pNextPluginModule);
+    void SetOutputPool( DataModulePool *pDataPool );
+    DataModulePool *GetOutputPool();
+    void SetInputPool( DataModulePool *pDataPool );
+    DataModulePool *GetInputPool();
 
 };
 
-extern std::vector<PluginModule *> ChainOfControl;
 
 
 

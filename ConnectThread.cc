@@ -158,13 +158,13 @@ void ConnectThread::ReceiveConnectionAttempts()
                 inet_ntop(AF_INET, &(their_addr.sin_addr), str, INET_ADDRSTRLEN);
 
 fprintf(stderr, "ConnectThread::ReceiveConnectionAttempts getting empty SocketEntity\n" );
-                SocketEntity *NewSocketEntity =  (SocketEntity *)(NextPluginModule->ProvideData());
+                SocketEntity *NewSocketEntity =  (SocketEntity *)(DataInputPool->Pop_front());
 fprintf(stderr, "ConnectThread::ReceiveConnectionAttempts got empty SocketEntity ok\n" );
 
                 NewSocketEntity->StartupSocket( new_sd, str );
 
 fprintf(stderr, "ConnectThread::ReceiveConnectionAttempts sending newly populated SocketEntity\n" );
-                NextPluginModule->ReceiveData( (DataModule *)NewSocketEntity );
+                DataOutputPool->Push_back( (DataModule *)NewSocketEntity );
 fprintf(stderr,"ConnectThread::ReceiveConnectionAttempts Connection accepted. Using new SocketDescriptor : %i\n", NewSocketEntity->GetDescriptor());
             }
         }

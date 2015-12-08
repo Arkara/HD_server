@@ -7,12 +7,14 @@
 
 
 //Harikan Dawn custom libraries
+#include "FlowControlModules.h"
 #include "SocketThreadLeader.h"
 #include "ConnectThread.h"
 #include "Utility.h"
 
-SocketThreadLeader SocketLeader;
-ConnectThread ConnectListenerThread;
+//SocketThreadLeader SocketLeader;
+//ConnectThread ConnectListenerThread;
+//DataModulePool SocketPool;
 
 void ApplyConfiguration()
 {
@@ -23,8 +25,24 @@ int main()
 {
     bool   EndProgram = false;
     char   InputBuffer[1024];
+    SocketEntity SocketProvider( -1, (char *)"0.0.0.0" );
+
+    DataModulePool UnusedSocketPool;
+    UnusedSocketPool.SetProvider( &SocketProvider );
+
+    DataModulePool SocketPool;
+    SocketPool.SetProvider( &UnusedSocketPool );  //note if called on for a socket and none is waiting, provide an enpty to avoid returning a null, which is just a bad practice.
+
+    ConnectThread ConnectListenerThread;
+    ConnectListenerThread.SetInputPool( &UnusedSocketPool );
+    ConnectListenerThread.SetOutputPool( &SocketPool );
+
+    SocketThreadLeader SocketLeader;
+    SocketLeader.SetInputPool( &SocketPool );
+    SocketLeader.SetOutputPool( &UnusedSocketPool );
 
     ConnectListenerThread.SetNextPluginModule( (PluginModule *)&SocketLeader );
+    
 
 
 printf( "Harikan Dawn Server rev 0.0.1\n" );

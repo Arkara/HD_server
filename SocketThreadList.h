@@ -12,6 +12,7 @@
 
 
 #include "SocketEntity.h"
+class SocketThreadLeader;
 #include "SocketThreadLeader.h"
 
 #define SocketThreadList_TERMINATE 0
@@ -29,6 +30,7 @@ private :
     std::atomic_int            State;
     bool                       Smallest = false;
     unsigned                   ListID;
+    SocketThreadLeader         *Leader = NULL;
 
     void ServiceList();
     void FlushToLeaderQueue();
@@ -46,6 +48,8 @@ public :
 
     unsigned GetSocketListID();
     void SetSocketListID(unsigned pListID);
+
+    void SetLeader( SocketThreadLeader *pLeader );
 };
 
 #endif

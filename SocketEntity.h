@@ -46,6 +46,8 @@ public :
     void MarkForDisconnect();
     bool IsRequestingDisconnect();
     void SendData( char *bdata, long dataLength );
+
+     DataModule *ProvideData();
 };
 
 #endif
