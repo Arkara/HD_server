@@ -9,7 +9,12 @@
 
 
 
-class SocketEntity
+
+
+#include "FlowControlModules.h"
+
+
+class SocketEntity : public DataModule
 {
 private :
     int    Descriptor;

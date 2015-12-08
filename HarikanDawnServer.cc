@@ -11,7 +11,6 @@
 #include "ConnectThread.h"
 #include "Utility.h"
 
-
 SocketThreadLeader SocketLeader;
 ConnectThread ConnectListenerThread;
 
@@ -25,12 +24,10 @@ int main()
     bool   EndProgram = false;
     char   InputBuffer[1024];
 
+    ConnectListenerThread.SetNextPluginModule( (PluginModule *)&SocketLeader );
+
 
 printf( "Harikan Dawn Server rev 0.0.1\n" );
-fprintf(stderr, "object sizes :\n   SocketThreadLeader = %lu\n   SocketThreadList = %lu\n   SocketEntity = %lu\n\n",
-    sizeof( SocketThreadLeader),
-    sizeof( SocketThreadList),
-    sizeof( SocketEntity) );
 
     ApplyConfiguration();
 

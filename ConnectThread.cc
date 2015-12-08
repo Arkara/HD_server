@@ -1,4 +1,3 @@
-#include "ConnectThread.h"
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -10,10 +9,13 @@
 
 
 
+#include "ConnectThread.h"
+
+
 
 void ConnectThread::InitHostInfo(const char *TargetHostURL)
 {
-printf( "ConnectThread::InitHostInfo\n" );
+fprintf( stderr, "ConnectThread::InitHostInfo\n" );
     memset(&host_info, 0, sizeof host_info);
 
     host_info.ai_family = AF_UNSPEC;
@@ -38,7 +40,7 @@ printf( "ConnectThread::InitHostInfo\n" );
 
 void ConnectThread::InitReceiveSocket()
 {
-printf( "ConnectThread::InitReceiveSocket\n" );
+fprintf( stderr, "ConnectThread::InitReceiveSocket\n" );
     SocketDescriptor = socket(host_info_list->ai_family, host_info_list->ai_socktype, host_info_list->ai_protocol);
     if (SocketDescriptor == -1)
     {
@@ -53,13 +55,13 @@ printf( "ConnectThread::InitReceiveSocket\n" );
 
 void ConnectThread::InitSocketConfig()
 {
-printf( "ConnectThread::InitSocketConfig\n" );
+fprintf( stderr, "ConnectThread::InitSocketConfig\n" );
     int    on = 1;
  
     status = ioctl(SocketDescriptor, FIONBIO, (char *)&on);
     if (status < 0)
     {
-printf( "ConnectThread::InitSocketConfig failed to set FIONBIO\n" );
+fprintf( stderr, "ConnectThread::InitSocketConfig failed to set FIONBIO\n" );
         shutdown( SocketDescriptor, SHUT_RDWR);
         SocketDescriptor = -1;
         SocketState = Connect_Thread_GETADDRINFO_INIT;
@@ -70,7 +72,7 @@ printf( "ConnectThread::InitSocketConfig failed to set FIONBIO\n" );
     status = setsockopt(SocketDescriptor, IPPROTO_TCP, TCP_NODELAY, (char *) &on, sizeof(int)); 
     if (status < 0)
     {
-printf( "ConnectThread::InitSocketConfig failed to set TCP_NODELAY\n" );
+fprintf( stderr, "ConnectThread::InitSocketConfig failed to set TCP_NODELAY\n" );
         shutdown( SocketDescriptor, SHUT_RDWR);
         SocketDescriptor = -1;
         SocketState = Connect_Thread_GETADDRINFO_INIT;
@@ -82,7 +84,7 @@ printf( "ConnectThread::InitSocketConfig failed to set TCP_NODELAY\n" );
 
 void ConnectThread::InitPort()
 {
-printf( "ConnectThread::InitPort\n" );
+fprintf( stderr, "ConnectThread::InitPort\n" );
     // make sure the port is not in use from previous execution of our code.
     int yes = 1;
     status = setsockopt(SocketDescriptor, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
@@ -101,7 +103,7 @@ printf( "ConnectThread::InitPort\n" );
 
 void ConnectThread::BindSocket()
 {
-printf( "ConnectThread::BindSocket\n" );
+fprintf( stderr, "ConnectThread::BindSocket\n" );
     status = bind(SocketDescriptor, host_info_list->ai_addr, host_info_list->ai_addrlen);
     if (status == -1)
     {
@@ -149,22 +151,29 @@ void ConnectThread::ReceiveConnectionAttempts()
         }
         else
         {
-            char str[INET_ADDRSTRLEN];
+            if( NextPluginModule!=NULL )
+            {
+                char str[INET_ADDRSTRLEN];
 
-            inet_ntop(AF_INET, &(their_addr.sin_addr), str, INET_ADDRSTRLEN);
+                inet_ntop(AF_INET, &(their_addr.sin_addr), str, INET_ADDRSTRLEN);
 
-            SocketEntity *NewSocketEntity = SocketLeader.GetUnusedSocketEntity();
+fprintf(stderr, "ConnectThread::ReceiveConnectionAttempts getting empty SocketEntity\n" );
+                SocketEntity *NewSocketEntity =  (SocketEntity *)(NextPluginModule->ProvideData());
+fprintf(stderr, "ConnectThread::ReceiveConnectionAttempts got empty SocketEntity ok\n" );
 
-            NewSocketEntity->StartupSocket( new_sd, str );
-            SocketLeader.AddSocketEntityToQueue(NewSocketEntity);
-            printf("Connection accepted. Using new SocketDescriptor : %i\n", NewSocketEntity->GetDescriptor());
+                NewSocketEntity->StartupSocket( new_sd, str );
+
+fprintf(stderr, "ConnectThread::ReceiveConnectionAttempts sending newly populated SocketEntity\n" );
+                NextPluginModule->ReceiveData( (DataModule *)NewSocketEntity );
+fprintf(stderr,"ConnectThread::ReceiveConnectionAttempts Connection accepted. Using new SocketDescriptor : %i\n", NewSocketEntity->GetDescriptor());
+            }
         }
     }
 }
 
 void ConnectThread::ConnectionListener()
 {
-printf( "ConnectThread::ConnectionListener\n");
+fprintf( stderr, "ConnectThread::ConnectionListener\n");
 
     while(SocketState!=Connect_Thread_TERMINATE)
     {
@@ -208,7 +217,7 @@ ConnectThread::ConnectThread()
 
 ConnectThread::~ConnectThread()
 {
-printf( "ConnectThread::~ConnectThread begins\n");
+fprintf( stderr, "ConnectThread::~ConnectThread begins\n");
 
     SocketState = Connect_Thread_TERMINATE;
 
@@ -217,5 +226,5 @@ printf( "ConnectThread::~ConnectThread begins\n");
         freeaddrinfo(host_info_list);
     }
     ConnectionListenerThread.join();
-printf( "ConnectThread::~ConnectThread completed\n");
+fprintf( stderr, "ConnectThread::~ConnectThread completed\n");
 }

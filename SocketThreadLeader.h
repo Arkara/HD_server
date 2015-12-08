@@ -14,11 +14,13 @@
 #include "SocketThreadList.h"
 class SocketThreadList;
 
+#include "FlowControlModules.h"
+
 #define SocketThreadLeader_TERMINATE 0
 #define SocketThreadLeader_RUN 1
 
 
-class SocketThreadLeader
+class SocketThreadLeader:public PluginModule
 {
 private :
     std::thread                  LeaderThread;
@@ -63,6 +65,10 @@ public :
     int GetQueueSize();
 
     void IDSocketLists();
+
+    void ReceiveData(DataModule* pData);
+    DataModule *ProvideData();
+    void NotifyOfTermination();
 };
 
 

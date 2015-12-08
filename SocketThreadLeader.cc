@@ -221,3 +221,19 @@ int SocketThreadLeader::GetQueueSize()
 {
     return SocketQueue.size();
 }
+
+
+void SocketThreadLeader::ReceiveData( DataModule *pData )
+{
+    AddSocketEntityToQueue( (SocketEntity *)pData);
+}
+
+DataModule *SocketThreadLeader::ProvideData()
+{
+    return (DataModule *)GetUnusedSocketEntity();
+}
+
+void SocketThreadLeader::NotifyOfTermination()
+{
+}
+

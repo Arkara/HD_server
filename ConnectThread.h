@@ -10,6 +10,7 @@
 
 
 
+#include "FlowControlModules.h"
 #include "SocketThreadLeader.h"
 
 
@@ -25,7 +26,7 @@
 #define Connect_Thread_LISTENING          5
 #define Connect_Thread_SOCKET_CONFIG      6
 
-class ConnectThread
+class ConnectThread : public PluginModule
 {
 private :
     std::thread              ConnectionListenerThread;
@@ -50,7 +51,9 @@ public :
     ~ConnectThread();
     void ConnectionListener();
 
-
+//FlowControl operations : ConnectThread only gets SocketEntitys from the next layer
+//    and passes them back so doesn't need to define any of the methods for itself,
+//    only to know how to call them.
 };
 
 
