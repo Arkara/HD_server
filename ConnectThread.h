@@ -54,6 +54,8 @@ public :
 //FlowControl operations : ConnectThread only gets SocketEntitys from the next layer
 //    and passes them back so doesn't need to define any of the methods for itself,
 //    only to know how to call them.
+//
+// We will need to add Exceptions as well as methods for reporting and handling error conditions.
 };
 
 
