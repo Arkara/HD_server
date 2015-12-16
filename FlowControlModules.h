@@ -1,3 +1,6 @@
+#Copyright (C) 2015, Harikan Dawn Associates. All Rights Reserved.
+#Contributors include : Joe A Lyon
+
 #ifndef _FLOW_CONTROL_MODULES
 #define _FLOW_CONTROL_MODULES
 

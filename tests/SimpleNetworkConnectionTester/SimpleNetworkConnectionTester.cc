@@ -1,3 +1,6 @@
+#Copyright (C) 2015, Harikan Dawn Associates. All Rights Reserved.
+#Contributors include : Joe A Lyon
+
 #include <iostream>
 #include <cstring>      // Needed for memset
 #include <sys/socket.h> // Needed for the socket functions

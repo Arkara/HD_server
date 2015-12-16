@@ -29,7 +29,7 @@
 //
 // ---------------------------------------------------------------------
 // Tests and application code called from them are
-// Copyright (C) 2015, Harikan Dawn Associates.
+// Copyright (C) 2015, Harikan Dawn Associates.All Rights Reserved.
 // Contributors include : Joe A Lyon.
 //
 
