@@ -1,4 +1,12 @@
-#include "SimpleNetworkConnectionTester.h"
+#include <iostream>
+#include <cstring>      // Needed for memset
+#include <sys/socket.h> // Needed for the socket functions
+#include <netdb.h>      // Needed for the socket functions
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <chrono>
+#include <thread>
 
 int GetRandScaled(int scale)
 {
@@ -9,16 +17,12 @@ printf( "GetRandScaled returns %i\n", (int)R );
     return (int)R;
 }
 
-#ifdef GTEST_INCLUDE_GTEST_GTEST_H_
 int main()
-#else
-int runtest()
-#endif
 {
     srand (time(NULL));
 
 
-    //wait a random number of seconds from 0-10 before starting
+    //wait a random number of seconds from 0-100 before starting
     sleep(GetRandScaled(10));
     
 
