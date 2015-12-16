@@ -33,6 +33,11 @@ CXXFLAGS += -pthread -std=c++11 -I $(GTEST_DIR) -I $(GTEST_DIR)/include ###-g -W
 APPLICATION = HarikanDawnServer
 TESTS = $(APPLICATION)_unittest
 
+cFiles :=$(wildcard *.cc)
+cFilesWithoutMain := $(filter-out HarikanDawnServer.cc,$(filter-out HarikanDawnServer_unittest.cc,$(cFiles)))
+objects := $(patsubst %.cc,%.o,$(cFiles))
+ObjectsWithoutMain := $(patsubst %.cc,%.o,$(cFilesWithoutMain))
+
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
@@ -71,14 +76,11 @@ gtest_main.a : gtest-all.o gtest_main.o
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
-cFiles := $(patsubst %.c,%.o,$(wildcard *.cc))
-objects := $(patsubst %.c,%.o,$(wildcard *.cc))
-
 objectFiles : $(objects) $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(cFiles)
 
-HarikanDawnServer_unittest : objectFiles HarikanDawnServer_unittest.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -o $@  HarikanDawnServer_unittest.o SocketThreadLeader.o SocketThreadList.o SocketEntity.o ConnectThread.o Utility.o FlowControlModules.o gtest_main.a
+HarikanDawnServer_unittest : gtest_main.a objectFiles
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -o $@  HarikanDawnServer_unittest.o $(ObjectsWithoutMain) gtest_main.a
 
-HarikanDawnServer : objectFiles HarikanDawnServer.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -o $@  HarikanDawnServer.o SocketThreadLeader.o SocketThreadList.o SocketEntity.o ConnectThread.o Utility.o FlowControlModules.o
+HarikanDawnServer : objectFiles
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -o $@  HarikanDawnServer.o  $(ObjectsWithoutMain)
