@@ -10,25 +10,25 @@
 
 SocketThreadLeader::SocketThreadLeader()
 {
-fprintf(stderr, "SocketThreadLeader::SocketThreadLeader begins\n" );
+//fprintf(stderr, "SocketThreadLeader::SocketThreadLeader begins\n" );
 
     SetNumberOfSocketLists( GetNumberOfCPUCores()-1 );
     State=SocketThreadLeader_RUN;
 
     LeaderThread = std::thread([=] { ServiceCollection(); });
 
-fprintf(stderr, "SocketThreadLeader::SocketThreadLeader ends\n" );
+//fprintf(stderr, "SocketThreadLeader::SocketThreadLeader ends\n" );
 }
 
 SocketThreadLeader::~SocketThreadLeader()
 {
-fprintf(stderr, "SocketThreadLeader::~SocketThreadLeader begins\n" );
+//fprintf(stderr, "SocketThreadLeader::~SocketThreadLeader begins\n" );
     State=SocketThreadLeader_TERMINATE;
 
     SocketThreadCollection.erase(SocketThreadCollection.begin(),SocketThreadCollection.end());
 
     LeaderThread.join();
-fprintf(stderr, "SocketThreadLeader::~SocketThreadLeader ends\n" );
+//fprintf(stderr, "SocketThreadLeader::~SocketThreadLeader ends\n" );
 }
 
 void SocketThreadLeader::SetNumberOfSocketLists(int pNumberOfSocketLists)
@@ -131,18 +131,18 @@ void SocketThreadLeader::ShowCollectionStatus()
 {
     if( SocketThreadCollection.size() >0 )
     {
-fprintf(stderr,"SocketThreadLeader::Collection Status : ");
+//fprintf(stderr,"SocketThreadLeader::Collection Status : ");
         for (std::list<SocketThreadList>::iterator SocketCollectionIterator=SocketThreadCollection.begin();
             SocketCollectionIterator!=SocketThreadCollection.end() ; ++SocketCollectionIterator)
         {
-            fprintf(stderr,"%3i ", (*SocketCollectionIterator).GetListSize());
+            //fprintf(stderr,"%3i ", (*SocketCollectionIterator).GetListSize());
         }
-fprintf(stderr,"\n");
+//fprintf(stderr,"\n");
     }
 }
 
 void SocketThreadLeader::ServiceCollection() {
-fprintf(stderr, "SocketThreadLeader::ServiceCollection begins\n" );
+//fprintf(stderr, "SocketThreadLeader::ServiceCollection begins\n" );
     
     while( State!=SocketThreadLeader_TERMINATE )
     {
@@ -151,7 +151,7 @@ fprintf(stderr, "SocketThreadLeader::ServiceCollection begins\n" );
         ShowCollectionStatus();
         std::this_thread::sleep_for(std::chrono::milliseconds(CollectionServicingDelay));
     }
-fprintf(stderr, "SocketThreadLeader::ServiceCollection ends\n" );
+//fprintf(stderr, "SocketThreadLeader::ServiceCollection ends\n" );
 }
 
 

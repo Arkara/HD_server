@@ -10,16 +10,16 @@
 
 SocketThreadList::SocketThreadList( )
 {
-fprintf(stderr, "SocketThreadList::SocketThreadList begins\n");
+//fprintf(stderr, "SocketThreadList::SocketThreadList begins\n");
     TaggedForDeletion = false;
     State=SocketThreadList_RUN;
     WorkerThread = std::thread([=] { ServiceList(); });
-fprintf(stderr, "SocketThreadList::SocketThreadList ends\n");
+//fprintf(stderr, "SocketThreadList::SocketThreadList ends\n");
 }
 
 SocketThreadList::~SocketThreadList()
 {
-fprintf(stderr, "SocketThreadList::~SocketThreadList begins\n");
+//fprintf(stderr, "SocketThreadList::~SocketThreadList begins\n");
     Terminate();      
     for (std::list<SocketEntity*>::iterator SocketEntityIterator=SocketDescriptors.begin(); SocketEntityIterator!=SocketDescriptors.end() ; ++SocketEntityIterator)
     {
@@ -30,7 +30,7 @@ fprintf(stderr, "SocketThreadList::~SocketThreadList begins\n");
     SocketDescriptors.erase(SocketDescriptors.begin(),SocketDescriptors.end());
      
     WorkerThread.join();
-fprintf(stderr, "SocketThreadList::~SocketThreadList ends\n");
+//fprintf(stderr, "SocketThreadList::~SocketThreadList ends\n");
 }
 
 
@@ -71,7 +71,7 @@ void SocketThreadList::RetrieveFromLeaderQueue()
         if( InputQueue != NULL )
         {
 
-//fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue begins\n" );
+////fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue begins\n" );
             for( int NumberRetrieved=0; NumberRetrieved<Leader->GetMaxToPullFromQueue(); NumberRetrieved++ )
             {
                 SocketEntity  *CurrentSocketEntity = (SocketEntity *)(InputQueue->Pop_front());
@@ -87,12 +87,12 @@ void SocketThreadList::RetrieveFromLeaderQueue()
                 }
                 else
                 {
-fprintf(stderr, "SocketThreadList( %u )::RetrieveFromLeaderQueue got SocketDescriptor %i\n", ListID, CurrentSocketEntity->GetDescriptor() );
+//fprintf(stderr, "SocketThreadList( %u )::RetrieveFromLeaderQueue got SocketDescriptor %i\n", ListID, CurrentSocketEntity->GetDescriptor() );
                     SocketDescriptors.push_back(CurrentSocketEntity);
                 }
             }
         }
-//fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue ends\n" );
+////fprintf(stderr, "SocketThreadList::RetrieveFromLeaderQueue ends\n" );
     }
 }
 

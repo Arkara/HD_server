@@ -30,13 +30,13 @@ SocketEntity::~SocketEntity()
 
 void SocketEntity::ShutdownSocket()
 {
-fprintf(stderr, "SocketEntity::ShutdownSocket ( %i )\n", Descriptor );
+//fprintf(stderr, "SocketEntity::ShutdownSocket ( %i )\n", Descriptor );
     if( Descriptor>0 )
     {
         shutdown( Descriptor, SHUT_RDWR);
         Descriptor = -1;
     }
-fprintf(stderr, "SocketEntity::ShutdownSocket ends\n" );
+//fprintf(stderr, "SocketEntity::ShutdownSocket ends\n" );
 }
 
 int SocketEntity::GetDescriptor()
@@ -181,7 +181,7 @@ std::cout << "SocketEntity::SendWrapper sent " << retValue << " bytes, expected 
 
 void SocketEntity::MarkForDisconnect()
 {
-fprintf( stderr, "SocketEntity::MarkForDisconnect\n" );
+//fprintf( stderr, "SocketEntity::MarkForDisconnect\n" );
     Disconnect = true;
 }
 
