@@ -17,7 +17,7 @@ printf( "GetRandScaled returns %i\n", (int)R );
     return (int)R;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     srand (time(NULL));
 
@@ -36,8 +36,24 @@ int main()
 
     host_info.ai_family = AF_UNSPEC;     // IP version not specified. Can be both.
     host_info.ai_socktype = SOCK_STREAM; // Use SOCK_STREAM for TCP or SOCK_DGRAM for UDP.
-
-    status = getaddrinfo("192.168.1.4", "56124", &host_info, &host_info_list);
+    
+    
+    char *machineIP;
+    if(argc == 2) {
+        char *argument = (char*)malloc(strlen(argv[1]) +1);
+        strcpy(argument, argv[1]);
+        
+        machineIP = argument;
+    }
+    
+    else {
+        machineIP = (char*)malloc(sizeof(100));
+        FILE *machineIPfile = popen("ip route get 1 | head -1 | cut -d' ' -f8", "r"); //Get IP
+        fgets(machineIP,100,machineIPfile);
+        
+    }
+    
+    status = getaddrinfo( machineIP, "56124", &host_info, &host_info_list);
     if (status != 0)  std::cout << "getaddrinfo error" << gai_strerror(status) ;
 
 
