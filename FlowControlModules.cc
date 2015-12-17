@@ -24,8 +24,6 @@ void DataModule::SetNext( DataModule *pData)
 
 void DataModule::AppendToEndOfList(DataModule *pData)
 {
-    pData->ClearNext();
-
     if( Next==NULL )
     {
         Next = pData;
