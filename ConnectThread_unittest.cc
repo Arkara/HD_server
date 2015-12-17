@@ -34,6 +34,12 @@
 //
 
 
+// Testing framework libraries
+#include "gtest/gtest.h"
+
+
+
+
 
 // standard libraries
 #include <iostream>
@@ -44,56 +50,15 @@
 
 
 //Harikan Dawn custom libraries
-#include "FlowControlModules.h"
-#include "SocketThreadLeader.h"
 #include "ConnectThread.h"
-#include "Utility.h"
+#include "FlowControlModules.h"
 
 
-#include "gtest/gtest.h"
 
 
-void ApplyConfiguration()
-{
-    //eventually override with values read from a config file 
-}
 
 int main(int ac, char* av[])
 {
-    bool   EndProgram = false;
-    char   InputBuffer[1024];
-    SocketEntity SocketProvider( -1, (char *)"0.0.0.0" );
-
-    DataModulePool UnusedSocketPool;
-    UnusedSocketPool.SetProvider( &SocketProvider );
-
-    DataModulePool SocketPool;
-    SocketPool.SetProvider( &UnusedSocketPool );  //note if called on for a socket and none is waiting, provide an enpty to avoid returning a null, which is just a bad practice.
-
-    ConnectThread ConnectListenerThread;
-    ConnectListenerThread.SetInputPool( &UnusedSocketPool );
-    ConnectListenerThread.SetOutputPool( &SocketPool );
-
-    SocketThreadLeader SocketLeader;
-    SocketLeader.SetInputPool( &SocketPool );
-    SocketLeader.SetOutputPool( &UnusedSocketPool );
-
-    ConnectListenerThread.SetNextPluginModule( (PluginModule *)&SocketLeader );
-    
-
-
-//printf( "Harikan Dawn Server rev 0.0.1\n" );
-
-//    ApplyConfiguration();
-
-//    while ( !EndProgram )
-//    {
-//        scanf( "%1023s", InputBuffer );
-//        if( strstr(InputBuffer,"quit")==InputBuffer )
-//        {
-//            EndProgram = true;
-//        }
-//    }
 
   testing::InitGoogleTest(&ac, av);
   return RUN_ALL_TESTS();
