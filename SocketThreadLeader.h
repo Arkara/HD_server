@@ -1,5 +1,5 @@
-#Copyright (C) 2015, Harikan Dawn Associates. All Rights Reserved.
-#Contributors include : Joe A Lyon
+//Copyright (C) 2015, Harikan Dawn Associates. All Rights Reserved.
+//Contributors include : Joe A Lyon
 
 #ifndef _SOCKET_THREAD_LEADER
 #define _SOCKET_THREAD_LEADER

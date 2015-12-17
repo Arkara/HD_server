@@ -1,5 +1,5 @@
-#Copyright (C) 2015, Harikan Dawn Associates. All Rights Reserved.
-#Contributors include : Joe A Lyon
+//Copyright (C) 2015, Harikan Dawn Associates. All Rights Reserved.
+//Contributors include : Joe A Lyon
 
 #include "SocketEntity.h"
 #include <thread>
