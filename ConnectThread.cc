@@ -16,8 +16,7 @@
 #include "ConnectThread.h"
 
 
-
-void ConnectThread::InitHostInfo(const char *TargetHostURL)
+void ConnectThread::InitHostInfo()
 {
 //fprintf( stderr, "ConnectThread::InitHostInfo\n" );
     memset(&host_info, 0, sizeof host_info);
@@ -31,10 +30,17 @@ void ConnectThread::InitHostInfo(const char *TargetHostURL)
         freeaddrinfo(host_info_list);
         host_info_list = NULL;
     }
+    SocketState = Connect_Thread_ADDRINFO_INIT;
+}
+
+void ConnectThread::InitAddressInfo(const char *TargetHostURL)
+{
+//fprintf( stderr, "ConnectThread::InitHostInfo\n" );
     status = getaddrinfo(TargetHostURL, "56124", &host_info, &host_info_list);
     if (status != 0)
     {
         printf("getaddrinfo error %s\n", gai_strerror(status));
+        SocketState = Connect_Thread_HOSTINFO_INIT;
     }
     else
     {
@@ -49,7 +55,7 @@ void ConnectThread::InitReceiveSocket()
     if (SocketDescriptor == -1)
     {
         printf("socket error\n");
-        SocketState = Connect_Thread_GETADDRINFO_INIT;
+        SocketState = Connect_Thread_ADDRINFO_INIT;
     }
     else
     {
@@ -68,7 +74,7 @@ void ConnectThread::InitSocketConfig()
 //fprintf( stderr, "ConnectThread::InitSocketConfig failed to set FIONBIO\n" );
         shutdown( SocketDescriptor, SHUT_RDWR);
         SocketDescriptor = -1;
-        SocketState = Connect_Thread_GETADDRINFO_INIT;
+        SocketState = Connect_Thread_ADDRINFO_INIT;
         return;
     }
 
@@ -79,7 +85,7 @@ void ConnectThread::InitSocketConfig()
 //fprintf( stderr, "ConnectThread::InitSocketConfig failed to set TCP_NODELAY\n" );
         shutdown( SocketDescriptor, SHUT_RDWR);
         SocketDescriptor = -1;
-        SocketState = Connect_Thread_GETADDRINFO_INIT;
+        SocketState = Connect_Thread_ADDRINFO_INIT;
         return;
     }
 
@@ -97,7 +103,7 @@ void ConnectThread::InitPort()
         printf("setsockopt error\n");
         shutdown( SocketDescriptor, SHUT_RDWR);
         SocketDescriptor = -1;
-        SocketState = Connect_Thread_GETADDRINFO_INIT;
+        SocketState = Connect_Thread_ADDRINFO_INIT;
     }
     else
     {
@@ -114,7 +120,7 @@ void ConnectThread::BindSocket()
         printf("bind error\n");
         shutdown( SocketDescriptor, SHUT_RDWR);
         SocketDescriptor = -1;
-        SocketState = Connect_Thread_GETADDRINFO_INIT;
+        SocketState = Connect_Thread_ADDRINFO_INIT;
     }
     else
     {
@@ -185,9 +191,13 @@ void ConnectThread::ConnectionListener()
         {
             ReceiveConnectionAttempts();
         }
-        else if( SocketState ==  Connect_Thread_GETADDRINFO_INIT )
+        else if( SocketState == Connect_Thread_HOSTINFO_INIT )
         {
-            InitHostInfo(NULL);
+            InitHostInfo();
+        }
+        else if( SocketState ==  Connect_Thread_ADDRINFO_INIT )
+        {
+            InitAddressInfo( NULL );
         }
         else if( SocketState == Connect_Thread_SOCKET_INIT )
         {
@@ -214,7 +224,7 @@ void ConnectThread::ConnectionListener()
 
 ConnectThread::ConnectThread()
 {
-    SocketState = Connect_Thread_GETADDRINFO_INIT;
+    SocketState = Connect_Thread_HOSTINFO_INIT;
     ConnectionListenerThread = std::thread([=] { ConnectionListener(); });
 
 }

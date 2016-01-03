@@ -22,24 +22,27 @@
 
 
 #define Connect_Thread_TERMINATE          0
-#define Connect_Thread_GETADDRINFO_INIT   1
-#define Connect_Thread_SOCKET_INIT        2
-#define Connect_Thread_PORT_INIT          3
-#define Connect_Thread_BIND_INIT          4
-#define Connect_Thread_LISTENING          5
-#define Connect_Thread_SOCKET_CONFIG      6
+#define Connect_Thread_HOSTINFO_INIT      1
+#define Connect_Thread_ADDRINFO_INIT      2
+#define Connect_Thread_SOCKET_INIT        3
+#define Connect_Thread_PORT_INIT          4
+#define Connect_Thread_BIND_INIT          5
+#define Connect_Thread_LISTENING          6
+#define Connect_Thread_SOCKET_CONFIG      7
 
 class ConnectThread : public PluginModule
 {
 private :
     std::thread              ConnectionListenerThread;
-    int                      status;
     struct addrinfo          host_info;
     struct addrinfo          *host_info_list = NULL;
+    int                      status;
     int                      SocketDescriptor;
     int                      ConnectionPollingDelay = 100;
+   
 
-    void InitHostInfo(const char *TargetHostURL);
+    void InitHostInfo();
+    void InitAddressInfo(const char *TargetHostURL);
     void InitReceiveSocket();
     void InitSocketConfig();
     void InitPort();
@@ -49,7 +52,6 @@ private :
     std::atomic<int> SocketState;
 
 public :
-   
     ConnectThread();
     ~ConnectThread();
     void ConnectionListener();
