@@ -22,12 +22,12 @@ GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 USER_DIR = .
 
 CPPFLAGS += -isystem $(GTEST_DIR)/include
-CXXFLAGS += -pthread -std=c++11 -I $(GTEST_DIR) -I $(GTEST_DIR)/include ###-g -Wall -Wextra 
+CXXFLAGS += -pthread -std=c++11 -I $(GTEST_DIR) -I $(GTEST_DIR)/include -g ###-Wall -Wextra 
 
 APPLICATION = HarikanDawnServer
 
 cFiles :=$(wildcard *.cc)
-cFilesWithoutMain := $(filter-out HarikanDawnServer.cc,$(filter-out HarikanDawnServer_unittest.cc,$(cFiles)))
+cFilesWithoutMain := $(filter-out HarikanDawnServer.cc,$(filter-out HarikanDawnServer_unittest.cc,$(filter-out gtest_main.cc,$(cFiles))))
 cFilesWithoutMainOrUnitTests := $(filter-out %_unittest.cc,$(cFilesWithoutMain))
 
 Objects := $(patsubst %.cc,%.o,$(cFiles))
@@ -65,8 +65,8 @@ gtest_main.a : gtest-all.o gtest_main.o
 ObjectFiles : $(Objects) $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(cFiles)
 
-$(unitTestFiles) : gtest_main.a ObjectFiles
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -o $@ gtest_main.a $(ObjectsWithoutMainOrUnitTests)
+$(unitTestFiles) : gtest-all.o ObjectFiles
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -o $@ gtest-all.o $(ObjectsWithoutMain)
 
 HarikanDawnServer : ObjectFiles
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread -o $@  HarikanDawnServer.o  $(ObjectsWithoutMainOrUnitTests)

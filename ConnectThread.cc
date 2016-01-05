@@ -224,14 +224,23 @@ void ConnectThread::ConnectionListener()
 
 ConnectThread::ConnectThread()
 {
-    SocketState = Connect_Thread_HOSTINFO_INIT;
-    ConnectionListenerThread = std::thread([=] { ConnectionListener(); });
-
 }
 
 ConnectThread::~ConnectThread()
 {
-//fprintf( stderr, "ConnectThread::~ConnectThread begins\n");
+}
+
+void ConnectThread::Start()
+{
+//fprintf( stderr, "ConnectThread::Start begins\n");
+    SocketState = Connect_Thread_HOSTINFO_INIT;
+    ConnectionListenerThread = std::thread([=] { ConnectionListener(); });
+//fprintf( stderr, "ConnectThread::Start ends\n");
+}
+
+void ConnectThread::Stop()
+{
+//fprintf( stderr, "ConnectThread::Stop begins\n");
 
     SocketState = Connect_Thread_TERMINATE;
 
@@ -240,5 +249,5 @@ ConnectThread::~ConnectThread()
         freeaddrinfo(host_info_list);
     }
     ConnectionListenerThread.join();
-//fprintf( stderr, "ConnectThread::~ConnectThread completed\n");
+//fprintf( stderr, "ConnectThread::Stop ends\n");
 }

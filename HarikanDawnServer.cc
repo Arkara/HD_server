@@ -39,6 +39,7 @@ int main()
     ConnectThread ConnectListenerThread;
     ConnectListenerThread.SetInputPool( &UnusedSocketPool );
     ConnectListenerThread.SetOutputPool( &SocketPool );
+    ConnectListenerThread.Start();
 
     SocketThreadLeader SocketLeader;
     SocketLeader.SetInputPool( &SocketPool );
@@ -58,6 +59,7 @@ printf( "Harikan Dawn Server rev 0.0.1\n" );
         if( strstr(InputBuffer,"quit")==InputBuffer )
         {
             EndProgram = true;
+            ConnectListenerThread.Stop();
         }
     }
 }

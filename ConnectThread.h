@@ -32,8 +32,11 @@
 
 class ConnectThread : public PluginModule
 {
-private :
+protected :
     std::thread              ConnectionListenerThread;
+    std::atomic<int> SocketState;
+
+private :
     struct addrinfo          host_info;
     struct addrinfo          *host_info_list = NULL;
     int                      status;
@@ -49,11 +52,14 @@ private :
     void BindSocket();
     void ReceiveConnectionAttempts();
  
-    std::atomic<int> SocketState;
 
 public :
     ConnectThread();
     ~ConnectThread();
+
+    void Start();
+    void Stop();
+
     void ConnectionListener();
 
 //FlowControl operations : ConnectThread only gets SocketEntitys from the next layer

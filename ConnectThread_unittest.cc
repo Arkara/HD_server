@@ -53,9 +53,54 @@
 #include "ConnectThread.h"
 #include "FlowControlModules.h"
 
+class TestableConnectThread : public ConnectThread
+{
 
+public :
+    std::thread *GetThread()
+    {
+        return &ConnectionListenerThread;
+    }
+    int GetSocketState()
+    {
+        return SocketState;
+    }
+};
 
+TestableConnectThread ObjectUnderTest;
 
+TEST( testfacility, proof )
+{
+    EXPECT_TRUE( true );
+}
+
+TEST( Threading, Start )
+{
+    ObjectUnderTest.Start();
+    EXPECT_TRUE( ObjectUnderTest.GetThread()->joinable() );
+    ObjectUnderTest.Stop();
+}
+
+TEST( Threading, Status_HostInfoInit )
+{
+    ObjectUnderTest.Start();
+    EXPECT_EQ( Connect_Thread_HOSTINFO_INIT, ObjectUnderTest.GetSocketState() );
+    ObjectUnderTest.Stop();
+}
+
+TEST( Threading, Stop )
+{
+    ObjectUnderTest.Start();
+    ObjectUnderTest.Stop();
+    EXPECT_FALSE( ObjectUnderTest.GetThread()->joinable() );
+}
+
+TEST( Threading, Status_Terminate )
+{
+    ObjectUnderTest.Start();
+    ObjectUnderTest.Stop();
+    EXPECT_EQ( Connect_Thread_TERMINATE, ObjectUnderTest.GetSocketState() );
+}
 
 
 int main(int ac, char* av[])
