@@ -187,43 +187,47 @@ void ConnectThread::ConnectionListener()
 
     while(SocketState!=Connect_Thread_TERMINATE)
     {
-
-        if( SocketState == Connect_Thread_LISTENING )
-        {
-            ReceiveConnectionAttempts();
-            return;
-        }
-        if( SocketState == Connect_Thread_HOSTINFO_INIT )
-        {
-            InitHostInfo();
-            return;
-        }
-        if( SocketState == Connect_Thread_ADDRINFO_INIT )
-        {
-            InitAddressInfo(NULL);
-            return;
-        }
-        if( SocketState == Connect_Thread_SOCKET_INIT )
-        {
-            InitReceiveSocket();
-            return;
-        }
-        if( SocketState == Connect_Thread_SOCKET_CONFIG )
-        {
-            InitSocketConfig();
-            return;
-        }
-        if( SocketState == Connect_Thread_PORT_INIT )
-        {
-            InitPort();
-            return;
-        }
-        if( SocketState == Connect_Thread_BIND_INIT )
-        {
-            BindSocket();
-            return;
-        }
+        CheckSocketState();
         std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+    }
+}
+
+void ConnectThread::CheckSocketState()
+{
+    if( SocketState == Connect_Thread_LISTENING )
+    {
+        ReceiveConnectionAttempts();
+        return;
+    }
+    if( SocketState == Connect_Thread_HOSTINFO_INIT )
+    {
+        InitHostInfo();
+        return;
+    }
+    if( SocketState == Connect_Thread_ADDRINFO_INIT )
+    {
+        InitAddressInfo(NULL);
+        return;
+    }
+    if( SocketState == Connect_Thread_SOCKET_INIT )
+    {
+        InitReceiveSocket();
+        return;
+    }
+    if( SocketState == Connect_Thread_SOCKET_CONFIG )
+    {
+        InitSocketConfig();
+        return;
+    }
+    if( SocketState == Connect_Thread_PORT_INIT )
+    {
+        InitPort();
+        return;
+    }
+    if( SocketState == Connect_Thread_BIND_INIT )
+    {
+        BindSocket();
+        return;
     }
 }
 

@@ -51,6 +51,7 @@ private :
     void InitPort();
     void BindSocket();
     void ReceiveConnectionAttempts();
+
  
 
 public :
@@ -60,6 +61,7 @@ public :
     void Start();
     void Stop();
 
+    void CheckSocketState();
     void ConnectionListener();
 
 //FlowControl operations : ConnectThread only gets SocketEntitys from the next layer
