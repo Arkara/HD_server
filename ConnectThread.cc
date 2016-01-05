@@ -1,5 +1,5 @@
 //Copyright (C) 2015, Harikan Dawn Associates. All Rights Reserved.
-//Contributors include : Joe A Lyon
+//Contributors include : Joe A Lyon, Roneet Nagale
 
 
 #include <iostream>
@@ -187,39 +187,44 @@ void ConnectThread::ConnectionListener()
 
     while(SocketState!=Connect_Thread_TERMINATE)
     {
+
         if( SocketState == Connect_Thread_LISTENING )
         {
             ReceiveConnectionAttempts();
+            return;
         }
-        else if( SocketState == Connect_Thread_HOSTINFO_INIT )
+        if( SocketState == Connect_Thread_HOSTINFO_INIT )
         {
             InitHostInfo();
+            return;
         }
-        else if( SocketState ==  Connect_Thread_ADDRINFO_INIT )
+        if( SocketState == Connect_Thread_ADDRINFO_INIT )
         {
-            InitAddressInfo( NULL );
+            InitAddressInfo(NULL);
+            return;
         }
-        else if( SocketState == Connect_Thread_SOCKET_INIT )
+        if( SocketState == Connect_Thread_SOCKET_INIT )
         {
             InitReceiveSocket();
+            return;
         }
-        else if( SocketState == Connect_Thread_SOCKET_CONFIG )
+        if( SocketState == Connect_Thread_SOCKET_CONFIG )
         {
             InitSocketConfig();
+            return;
         }
-        else if( SocketState == Connect_Thread_PORT_INIT )
+        if( SocketState == Connect_Thread_PORT_INIT )
         {
             InitPort();
+            return;
         }
-        else if( SocketState == Connect_Thread_BIND_INIT )
+        if( SocketState == Connect_Thread_BIND_INIT )
         {
             BindSocket();
+            return;
         }
-
-       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+        std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
     }
-    
-
 }
 
 ConnectThread::ConnectThread()
