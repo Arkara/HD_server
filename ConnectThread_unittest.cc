@@ -57,6 +57,11 @@ class TestableConnectThread : public ConnectThread
 {
 
 public :
+    void resetSocket()
+    {
+        ResetSocket();
+    }
+
     std::thread *GetThread()
     {
         return &ConnectionListenerThread;
@@ -64,6 +69,20 @@ public :
     int GetSocketState()
     {
         return SocketState;
+    }
+
+    int SetSocketState(int StateValue )
+    {
+        SocketState = StateValue;
+    }
+
+    int GetSocketDescriptor()
+    {
+        return SocketDescriptor;
+    }
+    int SetSocketDescriptor(int DescriptorValue)
+    {
+        SocketDescriptor = DescriptorValue;
     }
 };
 
@@ -101,6 +120,21 @@ TEST( Threading, Status_Terminate )
     ObjectUnderTest.Stop();
     EXPECT_EQ( Connect_Thread_TERMINATE, ObjectUnderTest.GetSocketState() );
 }
+
+
+
+TEST( Initialization, ResetSocket )
+{
+    ObjectUnderTest.SetSocketState( 999 );
+    ObjectUnderTest.SetSocketDescriptor( 999 );
+    ObjectUnderTest.resetSocket();
+    EXPECT_EQ( -1, ObjectUnderTest.GetSocketDescriptor() );
+    EXPECT_EQ( Connect_Thread_ADDRINFO_INIT, ObjectUnderTest.GetSocketState() );
+}
+
+
+
+
 
 
 int main(int ac, char* av[])

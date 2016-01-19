@@ -34,13 +34,15 @@ class ConnectThread : public PluginModule
 {
 protected :
     std::thread              ConnectionListenerThread;
-    std::atomic<int> SocketState;
+    std::atomic<int>         SocketState;
+    int                      SocketDescriptor;
+
+    void ResetSocket();
 
 private :
     struct addrinfo          host_info;
     struct addrinfo          *host_info_list = NULL;
     int                      status;
-    int                      SocketDescriptor;
     int                      ConnectionPollingDelay = 100;
    
 

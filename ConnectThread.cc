@@ -16,6 +16,13 @@
 #include "ConnectThread.h"
 
 
+void ConnectThread::ResetSocket()
+{
+    shutdown( SocketDescriptor, SHUT_RDWR);
+    SocketDescriptor = -1;
+    SocketState = Connect_Thread_ADDRINFO_INIT;
+}
+
 void ConnectThread::InitHostInfo()
 {
 //fprintf( stderr, "ConnectThread::InitHostInfo\n" );
@@ -101,9 +108,7 @@ void ConnectThread::InitPort()
     if (status == -1)
     {
         printf("setsockopt error\n");
-        shutdown( SocketDescriptor, SHUT_RDWR);
-        SocketDescriptor = -1;
-        SocketState = Connect_Thread_ADDRINFO_INIT;
+        ResetSocket();
     }
     else
     {
@@ -118,9 +123,7 @@ void ConnectThread::BindSocket()
     if (status == -1)
     {
         printf("bind error\n");
-        shutdown( SocketDescriptor, SHUT_RDWR);
-        SocketDescriptor = -1;
-        SocketState = Connect_Thread_ADDRINFO_INIT;
+        ResetSocket();
     }
     else
     {
