@@ -70,12 +70,20 @@ public :
     void SetInputPool( DataModulePool *pDataPool );
     DataModulePool *GetInputPool();
 
+    void LogMessage( int LogLevel, string ObjectAndMethodName, string MessageString );
+
 };
 
+// use the standard *nix log levels and definitions plus one
 
-
-
-
-
+#define LOG_TERMINAL   0        //system terminating
+#define LOG_EMERG      1        //system is unusable
+#define LOG_ALERT      2        //action must be taken immediately
+#define LOG_CRIT       3        //critical conditions
+#define LOG_ERR        4        //error conditions
+#define LOG_WARNING    5        //warning conditions
+#define LOG_NOTICE     6        //normal, but significant, condition
+#define LOG_INFO       7        //informational message
+#define LOG_DEBUG      8        //debug-level message
 
 #endif

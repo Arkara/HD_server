@@ -21,14 +21,16 @@
 
 
 
-#define Connect_Thread_TERMINATE          0
-#define Connect_Thread_HOSTINFO_INIT      1
-#define Connect_Thread_ADDRINFO_INIT      2
-#define Connect_Thread_SOCKET_INIT        3
-#define Connect_Thread_PORT_INIT          4
-#define Connect_Thread_BIND_INIT          5
-#define Connect_Thread_LISTENING          6
-#define Connect_Thread_SOCKET_CONFIG      7
+#define Connect_Thread_TERMINATE                          0
+#define Connect_Thread_HOSTINFO_INIT                      1
+#define Connect_Thread_ADDRINFO_INIT                      2
+#define Connect_Thread_SOCKET_INIT                        3
+#define Connect_Thread_PORT_INIT                          4
+#define Connect_Thread_BIND_INIT                          5
+#define Connect_Thread_LISTENING                          6
+#define Connect_Thread_SOCKET_CONFIG                      7
+#define Connect_Thread_SUSPEND_FOR_CONSOLE_INTERVENTION   8
+#define TERMINATE_SERVER                                  9
 
 class ConnectThread : public PluginModule
 {
@@ -44,16 +46,19 @@ private :
     struct addrinfo          *host_info_list = NULL;
     int                      status;
     int                      ConnectionPollingDelay = 100;
-   
+
+    int                      InitReceiveSocketRetryDelay = 10000;
+    int                      ConsoleInterventionPollingDelay = 10000; 
 
     void InitHostInfo();
-    void InitAddressInfo(const char *TargetHostURL);
     void InitReceiveSocket();
+    void InitAddressInfo(const char *TargetHostURL);
     void InitSocketConfig();
     void InitPort();
     void BindSocket();
     void ReceiveConnectionAttempts();
- 
+    void SuspendForConsoleIntervention();
+    void TerminateServer();
 
 public :
     ConnectThread();
@@ -64,11 +69,9 @@ public :
 
     void ConnectionListener();
 
-//FlowControl operations : ConnectThread only gets SocketEntitys from the next layer
-//    and passes them back so doesn't need to define any of the methods for itself,
-//    only to know how to call them.
-//
-// We will need to add Exceptions as well as methods for reporting and handling error conditions.
+    void SetInitReceiveSocketRetryDelay( int Value );
+    void SetConsoleInterventionPollingDelay( int Value );
+
 };
 
 

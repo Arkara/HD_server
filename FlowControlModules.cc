@@ -169,3 +169,8 @@ DataModulePool *PluginModule::GetInputPool()
 {
     return DataInputPool;
 }
+
+void PluginModule::LogMessage( int LogLevel, string ObjectAndMethodName, string MessageString )
+{
+}
+

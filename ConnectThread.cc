@@ -61,7 +61,120 @@ void ConnectThread::InitReceiveSocket()
     SocketDescriptor = socket(host_info_list->ai_family, host_info_list->ai_socktype, host_info_list->ai_protocol);
     if (SocketDescriptor == -1)
     {
-        printf("socket error\n");
+
+        /* SOCKET level errors */
+        if( errno==EACCESS )
+        {
+            LogMessage( LOG_EMERG, "ConnectThread::InitReceiveSocket", "EACCESS error: Permission to create listener socket is denied; Awaiting O/S and Console Intervention." );
+            SocketState=Connect_Thread_SUSPEND_FOR_CONSOLE_INTERVENTION;
+            return;
+        }
+        if( errno==EAFNOSUPPORT )
+        {
+            LogMessage( LOG_TERMINAL, "ConnectThread::InitReceiveSocket", "EAFNOSUPPORT error : The implementation does not support the specified address family; Terminating Server." );
+            SocketState=TERMINATE_SERVER;
+            return;
+        }
+        if( errno==EINVAL )
+        {
+            LogMessage( LOG_EMERG, "ConnectThread::InitReceiveSocket", "EINVAL error : Unknown protocol, or protocol family not available; Awaiting O/S and Console Intervention" );
+            SocketState=Connect_Thread_SUSPEND_FOR_CONSOLE_INTERVENTION;
+            return;
+        }
+        if( errno==EMFILE )
+        {
+            LogMessage( LOG_ERR, "ConnectThread::InitReceiveSocket", "EMFILE error : The per-process limit on the number of open file descriptors has been reached; Will Retry." );
+       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+            SocketState = Connect_Thread_SOCKET_INIT;
+            return;
+        }
+        if( errno==ENFILE )
+        {
+            LogMessage( LOG_ERR, "ConnectThread::InitReceiveSocket", "ENFILE error : The system-wide limit on the total number of open files has been reached; Will Retry." );
+       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+            SocketState = Connect_Thread_SOCKET_INIT;
+            return;
+        }
+        if( errno==ENOBUFS )
+        {
+            LogMessage( LOG_ERR, "ConnectThread::InitReceiveSocket", "ENOBUFS error : The socket cannot be created until sufficient resources are freed; Will Retry" );
+       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+            SocketState = Connect_Thread_SOCKET_INIT;
+            return;
+        }
+        if( errno==ENOMEM )
+        {
+            LogMessage( LOG_ERR, "ConnectThread::InitReceiveSocket", "ENOMEM error : The socket cannot be created until sufficient resources are freed; Will Retry" );
+       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+            SocketState = Connect_Thread_SOCKET_INIT;
+            return;
+        }
+        if( errno==EPROTONOSUPPORT  )
+        {
+            LogMessage( LOG_TERMINAL, "ConnectThread::InitReceiveSocket", "EPROTONOSUPPORT error : The protocol type or the specified protocol is not supported within this domain; Terminating Server" );
+            SocketState=TERMINATE_SERVER;
+            return;
+        }
+
+        /* IPV4 level errors */
+        if( errno==EADDRINUSE )
+        {
+            LogMessage( LOG_EMERG, "ConnectThread::InitReceiveSocket", "EADDRINUSE error :  Tried to bind to an address already in use; Awaiting O/S and Console Intervention" );
+            SocketState=Connect_Thread_SUSPEND_FOR_CONSOLE_INTERVENTION;
+            return;
+        }
+
+        if( errno==EADDRNOTAVAIL  )
+        {
+            LogMessage( LOG_TERMINAL, "ConnectThread::InitReceiveSocket", "EADDRNOTAVAIL error :  A nonexistent interface was requested or the requested source address was not local; Terminating Server" );
+            SocketState=TERMINATE_SERVER;
+            return;
+        }
+
+        if( errno==ENOPKG )
+        {
+            LogMessage( LOG_EMERG, "ConnectThread::InitReceiveSocket", "ENOPKG error :  A kernel subsystem was not configured; Awaiting O/S and Console Intervention" );
+            SocketState=Connect_Thread_SUSPEND_FOR_CONSOLE_INTERVENTION;
+            return;
+        }
+
+        if( errno==ENOPROTOOPT  )
+        {
+            LogMessage( LOG_TERMINAL, "ConnectThread::InitReceiveSocket", "ENOPROTOOPT error :  Invalid socket option passed; Terminating Server" );
+            SocketState=TERMINATE_SERVER;
+            return;
+        }
+
+        if( errno==EOPNOTSUPP  )
+        {
+            LogMessage( LOG_TERMINAL, "ConnectThread::InitReceiveSocket", "EOPNOTSUPP error :  Invalid socket option passed; Terminating Server" );
+            SocketState=TERMINATE_SERVER;
+            return;
+        }
+
+        if( errno==EPERM )
+        {
+            LogMessage( LOG_EMERG, "ConnectThread::InitReceiveSocket", "EPERM error : User doesn't have permission to set high priority, change configuration, or send signals to the requested process or group; Awaiting O/S and Console Intervention" );
+            SocketState=Connect_Thread_SUSPEND_FOR_CONSOLE_INTERVENTION;
+            return;
+        }
+
+        if( errno==ESOCKTNOSUPPORT  )
+        {
+            LogMessage( LOG_TERMINAL, "ConnectThread::InitReceiveSocket", "ESOCKTNOSUPPORT error :   The socket is not configured or an unknown socket type was requested; Terminating Server" );
+            SocketState=TERMINATE_SERVER;
+            return;
+        }
+
+        /* IPV6 level errors */
+        if( errno==ENODEV  )
+        {
+            LogMessage( LOG_TERMINAL, "ConnectThread::InitReceiveSocket", "ENODEV error : The user tried to bind(2) to a link-local IPv6 address, but the sin6_scope_id in the supplied sockaddr_in6 structure is not a valid interface index; Terminating Server" );
+            SocketState=TERMINATE_SERVER;
+            return;
+        }
+
+        ResetSocket();
         SocketState = Connect_Thread_ADDRINFO_INIT;
     }
     else
@@ -69,6 +182,19 @@ void ConnectThread::InitReceiveSocket()
         SocketState = Connect_Thread_SOCKET_CONFIG;
     }
 }
+
+void ConnectThread::SetInitReceiveSocketRetryDelay( int Value )
+{
+    InitReceiveSocketRetryDelay = Value;
+}
+
+void ConnectThread::SetConsoleInterventionPollingDelay( int Value )
+{
+    ConsoleInterventionPollingDelay = Value;
+}
+
+
+
 
 void ConnectThread::InitSocketConfig()
 {
@@ -184,6 +310,18 @@ void ConnectThread::ReceiveConnectionAttempts()
     }
 }
 
+void ConnectThread::SuspendForConsoleIntervention()
+{
+    //This is really just a placeholder preventing too-fast-polling and allowing the SocketState
+    //to be set by console command once the problem is resolved.
+    std::this_thread::sleep_for(std::chrono::milliseconds(ConsoleInterventionPollingDelay));
+}
+
+void ConnectThread::TerminateServer()
+{
+    //this is a stub.
+}
+
 void ConnectThread::ConnectionListener()
 {
 //fprintf( stderr, "ConnectThread::ConnectionListener\n");
@@ -218,11 +356,17 @@ void ConnectThread::ConnectionListener()
         {
             BindSocket();
         }
+        else if( SocketState == Connect_Thread_SUSPEND_FOR_CONSOLE_INTERVENTION )
+        {
+            SuspendForConsoleIntervention();
+        }
+        else if( SocketState == TERMINATE_SERVER )
+        {
+             TerminateServer();
+        }
 
-       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+        std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
     }
-    
-
 }
 
 ConnectThread::ConnectThread()
