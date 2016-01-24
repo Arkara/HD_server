@@ -63,7 +63,7 @@ void ConnectThread::InitReceiveSocket()
     {
 
         /* SOCKET level errors */
-        if( errno==EACCESS )
+        if( errno==EACCES )
         {
             LogMessage( LOG_EMERG, "ConnectThread::InitReceiveSocket", "EACCESS error: Permission to create listener socket is denied; Awaiting O/S and Console Intervention." );
             SocketState=Connect_Thread_SUSPEND_FOR_CONSOLE_INTERVENTION;
@@ -84,28 +84,28 @@ void ConnectThread::InitReceiveSocket()
         if( errno==EMFILE )
         {
             LogMessage( LOG_ERR, "ConnectThread::InitReceiveSocket", "EMFILE error : The per-process limit on the number of open file descriptors has been reached; Will Retry." );
-       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+            std::this_thread::sleep_for(std::chrono::milliseconds(InitReceiveSocketRetryDelay));
             SocketState = Connect_Thread_SOCKET_INIT;
             return;
         }
         if( errno==ENFILE )
         {
             LogMessage( LOG_ERR, "ConnectThread::InitReceiveSocket", "ENFILE error : The system-wide limit on the total number of open files has been reached; Will Retry." );
-       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+            std::this_thread::sleep_for(std::chrono::milliseconds(InitReceiveSocketRetryDelay));
             SocketState = Connect_Thread_SOCKET_INIT;
             return;
         }
         if( errno==ENOBUFS )
         {
             LogMessage( LOG_ERR, "ConnectThread::InitReceiveSocket", "ENOBUFS error : The socket cannot be created until sufficient resources are freed; Will Retry" );
-       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+            std::this_thread::sleep_for(std::chrono::milliseconds(InitReceiveSocketRetryDelay));
             SocketState = Connect_Thread_SOCKET_INIT;
             return;
         }
         if( errno==ENOMEM )
         {
             LogMessage( LOG_ERR, "ConnectThread::InitReceiveSocket", "ENOMEM error : The socket cannot be created until sufficient resources are freed; Will Retry" );
-       std::this_thread::sleep_for(std::chrono::milliseconds(ConnectionPollingDelay));
+            std::this_thread::sleep_for(std::chrono::milliseconds(InitReceiveSocketRetryDelay));
             SocketState = Connect_Thread_SOCKET_INIT;
             return;
         }
@@ -174,6 +174,8 @@ void ConnectThread::InitReceiveSocket()
             return;
         }
 
+        LogMessage( LOG_ERR, "ConnectThread::InitReceiveSocket", "socket initialization failed but the errno value was not recognized; Will retry." );
+        std::this_thread::sleep_for(std::chrono::milliseconds(InitReceiveSocketRetryDelay));
         ResetSocket();
         SocketState = Connect_Thread_ADDRINFO_INIT;
     }

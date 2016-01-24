@@ -8,6 +8,7 @@
 #include <list>
 #include <mutex>
 #include <stdlib.h>
+#include <string>
 
 
 
@@ -70,8 +71,7 @@ public :
     void SetInputPool( DataModulePool *pDataPool );
     DataModulePool *GetInputPool();
 
-    void LogMessage( int LogLevel, string ObjectAndMethodName, string MessageString );
-
+    void LogMessage( int LogLevel, std::string ClassAndMethodName, std::string MessageString );
 };
 
 // use the standard *nix log levels and definitions plus one
