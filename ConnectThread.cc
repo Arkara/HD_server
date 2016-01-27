@@ -39,7 +39,21 @@ std::vector<struct ErrorHandlerData> ErrorData = {
     { EPERM, LOG_EMERG, "ConnectThread::InitReceiveSocket", "EPERM error : User doesn't have permission to set high priority, change configuration, or send signals to the requested process or group; Awaiting O/S and Console Intervention", CONNECT_THREAD_SUSPEND_FOR_CONSOLE_INTERVENTION },
     { ESOCKTNOSUPPORT, LOG_TERMINAL, "ConnectThread::InitReceiveSocket", "ESOCKTNOSUPPORT error :   The socket is not configured or an unknown socket type was requested; Terminating Server", CONNECT_THREAD_TERMINATE_SERVER },
 // IPV6 level errors 
-    { ENODEV , LOG_TERMINAL, "ConnectThread::InitReceiveSocket", "ENODEV error : The user tried to bind(2) to a link-local IPv6 address, but the sin6_scope_id in the supplied sockaddr_in6 structure is not a valid interface index; Terminating Server", CONNECT_THREAD_TERMINATE_SERVER } };
+    { ENODEV , LOG_TERMINAL, "ConnectThread::InitReceiveSocket", "ENODEV error : The user tried to bind(2) to a link-local IPv6 address, but the sin6_scope_id in the supplied sockaddr_in6 structure is not a valid interface index; Terminating Server", CONNECT_THREAD_TERMINATE_SERVER },
+
+       //ioctl errors
+    { EBADF, LOG_ERR, "ConnectThread::InitSocketConfig","SocketDescriptor is not valid; Will Retry.", CONNECT_THREAD_SOCKET_INIT },
+    { EFAULT, LOG_TERMINAL,"ConnectThread::InitSocketConfig","'on' variable references an inaccessible memory area; Terminating Server.", CONNECT_THREAD_TERMINATE_SERVER },
+    { EINVAL, LOG_TERMINAL,"ConnectThread::InitSocketConfig","Request or 'on' variable is not valid; Terminating Server.", CONNECT_THREAD_TERMINATE_SERVER },
+    { ENOTTY, LOG_EMERG, "ConnectThread::InitSocketConfig","SocketDescriptor is not associated with a character special device; Awaiting O/S and Console Intervention.", CONNECT_THREAD_SUSPEND_FOR_CONSOLE_INTERVENTION },
+    { ENOTTY, LOG_TERMINAL,"ConnectThread::InitSocketConfig","The specified request does not apply to the kind of object that the descriptor SocketDescriptor references; Terminating Server.", CONNECT_THREAD_TERMINATE_SERVER },
+       //setsockopt errors
+    { EBADF, LOG_ERR, "ConnectThread::InitSocketConfig","The SocketDescriptor is not valid; Will Retry.", CONNECT_THREAD_SOCKET_INIT },
+    { EFAULT, LOG_TERMINAL,"ConnectThread::InitSocketConfig","'on' is not in a valid part of the process address space; This probably means the Server binary is corrupted, Terminating.", CONNECT_THREAD_TERMINATE_SERVER },
+    { EINVAL, LOG_TERMINAL, "ConnectThread::InitSocketConfig","optlen invalid in setsockopt(); This probably means the Server binary is corrupted, Terminating.", CONNECT_THREAD_TERMINATE_SERVER },
+    { ENOPROTOOPT, LOG_TERMINAL, "ConnectThread::InitSocketConfig","The IPPROTO_TCP or TCP_NODELAY options are unknown at the level indicated; This probably means the Server binary is corrupted, Terminating.", CONNECT_THREAD_TERMINATE_SERVER },
+    { ENOTSOCK, LOG_EMERG, "ConnectThread::InitSocketConfig","The SocketDescriptor is a file, not a socket; Awaiting O/S and Console intervention.", CONNECT_THREAD_SUSPEND_FOR_CONSOLE_INTERVENTION }
+};
 
 
 
@@ -69,6 +83,12 @@ void ConnectThread::InitHostInfo()
     SocketState = CONNECT_THREAD_ADDRINFO_INIT;
 }
 
+// No Error Handling Required
+
+
+
+
+
 void ConnectThread::InitAddressInfo(const char *TargetHostURL)
 {
 //fprintf( stderr, "ConnectThread::InitHostInfo\n" );
@@ -83,6 +103,10 @@ void ConnectThread::InitAddressInfo(const char *TargetHostURL)
         SocketState = CONNECT_THREAD_SOCKET_INIT;
     }
 }
+
+
+
+
 
 void ConnectThread::InitReceiveSocket()
 {
@@ -133,6 +157,7 @@ void ConnectThread::SetConsoleInterventionPollingDelay( int Value )
 
 
 
+
 void ConnectThread::InitSocketConfig()
 {
 //fprintf( stderr, "ConnectThread::InitSocketConfig\n" );
@@ -141,26 +166,42 @@ void ConnectThread::InitSocketConfig()
     status = ioctl(SocketDescriptor, FIONBIO, (char *)&on);
     if (status < 0)
     {
-//fprintf( stderr, "ConnectThread::InitSocketConfig failed to set FIONBIO\n" );
-        shutdown( SocketDescriptor, SHUT_RDWR);
-        SocketDescriptor = -1;
-        SocketState = CONNECT_THREAD_ADDRINFO_INIT;
+        HandleErrorOnSocketConfig(errno);
         return;
     }
 
-    //status = ioctl(SocketDescriptor, TCP_NODELAY, (char *)&on);
     status = setsockopt(SocketDescriptor, IPPROTO_TCP, TCP_NODELAY, (char *) &on, sizeof(int)); 
     if (status < 0)
     {
-//fprintf( stderr, "ConnectThread::InitSocketConfig failed to set TCP_NODELAY\n" );
-        shutdown( SocketDescriptor, SHUT_RDWR);
-        SocketDescriptor = -1;
-        SocketState = CONNECT_THREAD_ADDRINFO_INIT;
+        HandleErrorOnSocketConfig(errno);
         return;
     }
 
     SocketState = CONNECT_THREAD_PORT_INIT;
 }
+
+void ConnectThread::HandleErrorOnSocketConfig(int ErrorNo )
+{
+    for( int currentEntry=0; currentEntry<ErrorData.size(); currentEntry++ )
+    {
+        if( ErrorData[ currentEntry ].errnoCode == ErrorNo &&  ErrorData[ currentEntry ].classAndMethod=="ConnectThread::InitSocketConfig" )
+        {
+            LogMessage( ErrorData[ currentEntry ].logLevel,
+                "ConnectThread::InitSocketConfig",
+                 ErrorData[ currentEntry ].errorMessage.data() );
+            SocketState = ErrorData[ currentEntry ].nextState;
+            return;
+        }
+    }
+
+    LogMessage( LOG_ERR, "ConnectThread::InitSocketConfig", "socket configuration failed but the errno value was not recognized; Will retry." );
+    std::this_thread::sleep_for(std::chrono::milliseconds(InitReceiveSocketRetryDelay));
+    ResetSocket();
+    SocketState = CONNECT_THREAD_ADDRINFO_INIT;
+}
+
+
+
 
 void ConnectThread::InitPort()
 {
@@ -179,6 +220,10 @@ void ConnectThread::InitPort()
     }
 }
 
+
+
+
+
 void ConnectThread::BindSocket()
 {
 //fprintf( stderr, "ConnectThread::BindSocket\n" );
@@ -193,6 +238,10 @@ void ConnectThread::BindSocket()
         SocketState = CONNECT_THREAD_LISTENING;
     }
 }
+
+
+
+
 
 void ConnectThread::ReceiveConnectionAttempts()
 {

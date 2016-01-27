@@ -40,7 +40,7 @@ std::vector<std::string> *stringParse( char* rawString, char* splitOn)
         wordLength = strcspn( tokenStart, splitOn );
         if( wordLength>0 )
         {
-            if( wordLength>1024 )
+            if( wordLength>1023 )
             {
                wordLength=1023;
             }

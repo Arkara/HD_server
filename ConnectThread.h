@@ -74,6 +74,7 @@ public :
     void SetInitReceiveSocketRetryDelay( int Value );
     void SetConsoleInterventionPollingDelay( int Value );
     void HandleErrorOnReceiveSocket( int ErrorNo);
+    void HandleErrorOnSocketConfig( int ErrorNo );
 
 };
 
