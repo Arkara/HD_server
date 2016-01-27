@@ -5,6 +5,10 @@
 
 #include <unistd.h>
 #include <thread>
+#include <string.h>
+#include <string>
+#include <vector>
+
 
 
 int GetNumberOfCPUCores();
@@ -12,6 +16,9 @@ int GetNumberOfCPUCores();
 unsigned GetNumberOfThreadsSupported();
 
 long GetTimeInMilliseconds();
+
+std::vector<std::string> *stringParse( char* rawString, char* splitOn);
+
 
 
 #define _HD_Utility

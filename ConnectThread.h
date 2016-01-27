@@ -21,16 +21,16 @@
 
 
 
-#define Connect_Thread_TERMINATE                          0
-#define Connect_Thread_HOSTINFO_INIT                      1
-#define Connect_Thread_ADDRINFO_INIT                      2
-#define Connect_Thread_SOCKET_INIT                        3
-#define Connect_Thread_PORT_INIT                          4
-#define Connect_Thread_BIND_INIT                          5
-#define Connect_Thread_LISTENING                          6
-#define Connect_Thread_SOCKET_CONFIG                      7
-#define Connect_Thread_SUSPEND_FOR_CONSOLE_INTERVENTION   8
-#define TERMINATE_SERVER                                  9
+#define CONNECT_THREAD_TERMINATE                          0
+#define CONNECT_THREAD_HOSTINFO_INIT                      1
+#define CONNECT_THREAD_ADDRINFO_INIT                      2
+#define CONNECT_THREAD_SOCKET_INIT                        3
+#define CONNECT_THREAD_PORT_INIT                          4
+#define CONNECT_THREAD_BIND_INIT                          5
+#define CONNECT_THREAD_LISTENING                          6
+#define CONNECT_THREAD_SOCKET_CONFIG                      7
+#define CONNECT_THREAD_SUSPEND_FOR_CONSOLE_INTERVENTION   8
+#define CONNECT_THREAD_TERMINATE_SERVER                   9
 
 class ConnectThread : public PluginModule
 {
@@ -51,7 +51,9 @@ private :
     int                      ConsoleInterventionPollingDelay = 10000; 
 
     void InitHostInfo();
+
     void InitReceiveSocket();
+
     void InitAddressInfo(const char *TargetHostURL);
     void InitSocketConfig();
     void InitPort();
@@ -71,8 +73,18 @@ public :
 
     void SetInitReceiveSocketRetryDelay( int Value );
     void SetConsoleInterventionPollingDelay( int Value );
+    void HandleErrorOnReceiveSocket( int ErrorNo);
 
 };
+
+struct ErrorHandlerData {
+    int    errnoCode;
+    int    logLevel;
+    std::string   classAndMethod;
+    std::string   errorMessage;
+    int    nextState;
+};
+
 
 
 #define _HD_ConnectThread

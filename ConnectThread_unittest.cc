@@ -103,7 +103,7 @@ TEST( Threading, Start )
 TEST( Threading, Status_HostInfoInit )
 {
     ObjectUnderTest.Start();
-    EXPECT_EQ( Connect_Thread_HOSTINFO_INIT, ObjectUnderTest.GetSocketState() );
+    EXPECT_EQ( CONNECT_THREAD_HOSTINFO_INIT, ObjectUnderTest.GetSocketState() );
     ObjectUnderTest.Stop();
 }
 
@@ -118,7 +118,7 @@ TEST( Threading, Status_Terminate )
 {
     ObjectUnderTest.Start();
     ObjectUnderTest.Stop();
-    EXPECT_EQ( Connect_Thread_TERMINATE, ObjectUnderTest.GetSocketState() );
+    EXPECT_EQ( CONNECT_THREAD_TERMINATE, ObjectUnderTest.GetSocketState() );
 }
 
 
@@ -129,9 +129,36 @@ TEST( Initialization, ResetSocket )
     ObjectUnderTest.SetSocketDescriptor( 999 );
     ObjectUnderTest.resetSocket();
     EXPECT_EQ( -1, ObjectUnderTest.GetSocketDescriptor() );
-    EXPECT_EQ( Connect_Thread_ADDRINFO_INIT, ObjectUnderTest.GetSocketState() );
+    EXPECT_EQ( CONNECT_THREAD_ADDRINFO_INIT, ObjectUnderTest.GetSocketState() );
 }
 
+
+
+TEST( HandleErrorOnReceiveSocket, Retry )
+{
+    ObjectUnderTest.SetSocketState( 999 );
+    ObjectUnderTest.HandleErrorOnReceiveSocket( EMFILE );
+    EXPECT_EQ( CONNECT_THREAD_SOCKET_INIT, ObjectUnderTest.GetSocketState());
+}
+TEST( HandleErrorOnReceiveSocket, SuspendForConsoleIntervention )
+{
+    ObjectUnderTest.SetSocketState( 999 );
+    ObjectUnderTest.HandleErrorOnReceiveSocket( EACCES );
+    EXPECT_EQ( CONNECT_THREAD_SUSPEND_FOR_CONSOLE_INTERVENTION, ObjectUnderTest.GetSocketState());
+}
+TEST( HandleErrorOnReceiveSocket, TerminateServer )
+{
+    ObjectUnderTest.SetSocketState( 999 );
+    ObjectUnderTest.HandleErrorOnReceiveSocket( EAFNOSUPPORT );
+    EXPECT_EQ( CONNECT_THREAD_TERMINATE_SERVER, ObjectUnderTest.GetSocketState());
+}
+TEST( HandleErrorOnReceiveSocket, DefaultAction )
+{
+    ObjectUnderTest.SetSocketState( 999 );
+    ObjectUnderTest.SetInitReceiveSocketRetryDelay(0);
+    ObjectUnderTest.HandleErrorOnReceiveSocket( 999 );
+    EXPECT_EQ( CONNECT_THREAD_ADDRINFO_INIT, ObjectUnderTest.GetSocketState());
+}
 
 
 
